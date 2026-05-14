@@ -11350,15 +11350,16 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
   // PSC placed state
   if (phase === "placed-psc") {
     const patientPhone = "+855 12 ••• 4471";
-    const pscAddress = "55 St. 178 · BKK1, Phnom Penh";
+    const pscAddress = "55 St. 178, BKK1, Phnom Penh";
     const pscDistance = "1.2 km";
     const firstName = patient.name.split(" ")[0];
 
-    const paymentLine = pscPayWhen === "later"
-      ? { icon: <Banknote size={11} />,  text: "Patient pays at PSC counter",     tone: "text-ink-3"  }
+    const paymentText = pscPayWhen === "later"
+      ? "To collect at PSC counter"
       : pscPayMethod === "cash"
-        ? { icon: <Banknote size={11} />, text: `Cash collected · $${total.toFixed(2)}`, tone: "text-jade-2" }
-        : { icon: <QrCode  size={11} />,  text: `KHQR sent · $${total.toFixed(2)}`,      tone: "text-jade-2" };
+        ? `Cash collected · $${total.toFixed(2)}`
+        : `KHQR sent · $${total.toFixed(2)}`;
+    const paymentTone = pscPayWhen === "later" ? "text-ink-2" : "text-jade-2";
 
     return (
       <div className="bg-surface border border-line rounded-xl overflow-hidden">
@@ -11370,34 +11371,53 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
           <button onClick={onClose} className="w-7 h-7 rounded-md hover:bg-surface-2 text-ink-3 flex items-center justify-center"><X size={14} /></button>
         </div>
 
-        <div className="px-4 py-4">
-          <div className="rounded-lg border border-jade-2 bg-jade-soft/40 px-4 py-5 text-center">
-            <CheckCircle2 size={26} className="text-jade-2 mx-auto mb-2" />
-            <div className="text-[10.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-1">Booking code</div>
+        {/* Calmer confirmation: labeled rows on a light surface. Booking code
+            stays the visual hero; everything else groups quietly below. No
+            heavy outlined panel — this is a successful end state, not an
+            alert. */}
+        <div className="px-4 py-4 space-y-3.5 bg-surface-2/30">
+          <div>
+            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1">Booking code</div>
             <button
               onClick={() => openMobileBooking(bookingCode)}
-              className="font-mono text-[26px] font-medium tracking-[0.14em] text-ink leading-none mb-1 hover:text-jade-2 transition inline-flex items-center gap-1.5"
+              className="font-mono text-[24px] font-medium tracking-[0.12em] text-ink leading-none hover:text-jade-2 transition inline-flex items-center gap-1.5"
               title="Preview as patient (mobile)"
             >
-              {bookingCode} <ExternalLink size={12} className="text-ink-3" />
+              {bookingCode} <ExternalLink size={11} className="text-ink-3" />
             </button>
-            <div className="text-[10.5px] text-jade-2 mb-2">
-              <button onClick={() => openMobileBooking(bookingCode)} className="hover:underline inline-flex items-center gap-1">
-                Preview as patient on mobile →
-              </button>
+          </div>
+
+          <div>
+            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-0.5">Sent to</div>
+            <div className="text-[12.5px] text-ink-2 leading-snug">
+              <span className="font-medium text-ink">{firstName}</span>
+              <span className="font-mono text-[11px] text-ink-3 ml-1.5">{patientPhone}</span>
             </div>
-            <div className="text-[11.5px] text-ink-2 leading-snug">
-              Sent to <span className="font-medium">{firstName}</span> · <span className="font-mono text-[10.5px]">{patientPhone}</span>
+          </div>
+
+          <div>
+            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-0.5">Collection point</div>
+            <div className="text-[12.5px] text-ink-2 leading-snug">{pscAddress}</div>
+            <div className="text-[10.5px] text-ink-3 mt-0.5 inline-flex items-center gap-1">
+              <MapPin size={10} /> Closest · <span className="font-mono text-jade-2">{pscDistance}</span>
             </div>
-            <div className="text-[10.5px] text-ink-3 mt-1.5 inline-flex items-center justify-center gap-1 leading-snug">
-              <MapPin size={10} /> <span>Closest · <span className="font-mono">{pscAddress}</span> · <span className="text-jade-2 font-mono">{pscDistance}</span></span>
+          </div>
+
+          <div>
+            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-0.5">Payment</div>
+            <div className={`text-[12.5px] leading-snug ${paymentTone}`}>{paymentText}</div>
+          </div>
+
+          <div className="pt-2 border-t border-line-2 flex items-center justify-between gap-3">
+            <div className="text-[10.5px] text-ink-3 leading-snug flex-1">
+              The patient link includes directions and test prep.
             </div>
-            <div className={`text-[11px] mt-2.5 inline-flex items-center gap-1.5 ${paymentLine.tone}`}>
-              {paymentLine.icon} {paymentLine.text}
-            </div>
-            <div className="text-[10px] text-ink-3 mt-3 leading-snug">
-              Booking link includes directions and pre-test prep for the selected tests.
-            </div>
+            <button
+              onClick={() => openMobileBooking(bookingCode)}
+              className="text-[10.5px] text-jade-2 hover:text-jade hover:underline shrink-0 inline-flex items-center gap-1"
+            >
+              Preview patient view <ExternalLink size={10} />
+            </button>
           </div>
         </div>
       </div>
