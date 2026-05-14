@@ -1276,6 +1276,12 @@ const patients = [
     flagText: "HbA1c 9.4% · trending up 2 quarters",
     summary: "T2DM 6y, on metformin + gliclazide. LDL elevated. Adherence concerns.",
     nextStep: "Add SGLT2i; repeat HbA1c in 90d",
+    // Structured chunks for the patient header — scan-not-read. If present,
+    // the header renders three labeled columns (review / context / plan)
+    // instead of the prose summary + nextStep paragraph.
+    flagged: ["LDL elevated", "Adherence concerns"],
+    context: ["T2DM 6y", "Metformin + gliclazide"],
+    suggested: ["Add SGLT2i", "Repeat HbA1c in 90d"],
     trend: [
       { q: "Q1·25", v: 7.8 }, { q: "Q2·25", v: 8.1 }, { q: "Q3·25", v: 8.4 },
       { q: "Q4·25", v: 8.9 }, { q: "Q1·26", v: 9.4 },
@@ -10058,28 +10064,71 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
           </div>
         </div>
 
-        {/* AI recap — folded into the header card; collapses with the rest on scroll */}
-        {headerCompact ? (
-          <div className="mt-2 pt-2 border-t border-line-2 flex items-center gap-2 text-[11.5px]">
-            <Sparkles size={12} className="text-jade-2 shrink-0" />
-            <span className="text-[9.5px] uppercase tracking-[0.18em] text-jade font-semibold shrink-0">Needs review</span>
-            <span className="text-ink-2 truncate">{patient.summary} <span className="text-jade-2 font-semibold">Next:</span> <span className="text-ink-2">{patient.nextStep}</span></span>
-          </div>
-        ) : (
-          <div className="mt-3 pt-3 border-t border-line-2 flex items-start gap-2.5">
-            <Sparkles size={13} className="text-jade-2 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10.5px] uppercase tracking-[0.14em] text-jade font-semibold">Needs review</span>
+        {/* AI recap — folded into the header card; collapses with the rest on scroll.
+            When the patient record carries structured chunks (flagged / context /
+            suggested), render three labeled columns the doctor can scan in 3
+            seconds. Falls back to the legacy prose summary + nextStep paragraph
+            when those fields are missing. */}
+        {(() => {
+          const structured = patient.flagged && patient.context && patient.suggested;
+          if (headerCompact) {
+            return (
+              <div className="mt-2 pt-2 border-t border-line-2 flex items-center gap-2 text-[11.5px]">
+                <Sparkles size={12} className="text-jade-2 shrink-0" />
+                <span className="text-[9.5px] uppercase tracking-[0.18em] text-jade font-semibold shrink-0">Needs review</span>
+                <span className="text-ink-2 truncate">
+                  {structured
+                    ? <>{patient.flagged.join(" · ")} <span className="text-ink-3">·</span> <span className="text-jade-2 font-semibold">Plan:</span> {patient.suggested.join(" · ")}</>
+                    : <>{patient.summary} <span className="text-jade-2 font-semibold">Next:</span> <span className="text-ink-2">{patient.nextStep}</span></>}
+                </span>
               </div>
-              <p className="text-[12.5px] text-ink leading-relaxed">
-                {patient.summary}
-                <span className="text-jade-2 font-medium"> Suggested:</span>{" "}
-                <span className="text-ink-2">{patient.nextStep}</span>
-              </p>
+            );
+          }
+          if (structured) {
+            return (
+              <div className="mt-3 pt-3 border-t border-line-2 bg-jade-soft/30 -mx-4 px-4 py-3 sm:-mx-5 sm:px-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sparkles size={11} className="text-jade-2 shrink-0" />
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-jade font-semibold">Needs review</span>
+                    </div>
+                    <ul className="text-[12.5px] text-ink leading-snug space-y-0.5">
+                      {patient.flagged.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1">Context</div>
+                    <ul className="text-[12.5px] text-ink-2 leading-snug space-y-0.5">
+                      {patient.context.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1">Suggested plan</div>
+                    <ul className="text-[12.5px] text-ink leading-snug space-y-0.5">
+                      {patient.suggested.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div className="mt-3 pt-3 border-t border-line-2 flex items-start gap-2.5">
+              <Sparkles size={13} className="text-jade-2 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10.5px] uppercase tracking-[0.14em] text-jade font-semibold">Needs review</span>
+                </div>
+                <p className="text-[12.5px] text-ink leading-relaxed">
+                  {patient.summary}
+                  <span className="text-jade-2 font-medium"> Suggested:</span>{" "}
+                  <span className="text-ink-2">{patient.nextStep}</span>
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Action surfaces — the sub-header ribbon was removed. Each primitive
