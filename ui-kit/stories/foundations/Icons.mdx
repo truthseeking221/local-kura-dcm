@@ -1,0 +1,51 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { IconSizeMatrix } from './_components/IconRow.tsx'
+import { Icon } from '@/components/atoms/icon.tsx'
+
+<Meta title="Foundations/Icons" />
+
+# Icons
+
+The kit renders icons through **Iconify**. Any of Iconify's 200+ collections are addressable by string name (`<Icon name="tabler:search" />`, `<Icon name="healthicons:syringe" />`, `<Icon name="circle-flags:vn" />`). Strokes default to **1.5 px**; canonical sizes remain `12 / 14 / 16 / 20 / 24 / 28`. The lock-in to a single set is gone — pick the most accurate icon from the most appropriate collection.
+
+<IconSizeMatrix />
+
+## Usage
+
+```tsx
+import { Icon } from '@/components/atoms/icon.tsx'
+
+<Icon name="tabler:search" size={16} aria-hidden />
+<Icon name="healthicons:syringe" size={20} className="text-[var(--brand-500)]" />
+<Icon name="circle-flags:vn" size={16} strokeWidth={null} />
+```
+
+- `name` — Iconify identifier `<collection>:<icon>`. The `tabler:` collection is the kit's default.
+- `size` — pixel size for both axes; defaults to 16.
+- `strokeWidth` — defaults to 1.5; pass `null` to keep the upstream stroke (use for filled / coloured collections like `circle-flags`).
+- `aria-hidden` for decorative use; pair with adjacent text for screen readers.
+- `aria-label` for icon-only buttons.
+
+## Canonical sizes
+
+- **12 / 14** — chip leading icons, inline status dots, dense table cells.
+- **16** — the default icon size next to body text and inside buttons.
+- **20** — section headers, sidebar nav.
+- **24 / 28** — page heroes, empty-state illustrations.
+
+## Recommended collections
+
+| Collection | Use case |
+| --- | --- |
+| `tabler` | Default kit chrome — buttons, fields, nav, headers. |
+| `healthicons` | Clinic-specific glyphs — vaccines, lab equipment, body parts. |
+| `circle-flags` / `flag` | Country flags. Render with `strokeWidth={null}`. |
+| `simple-icons` | Brand logos (Telegram, WhatsApp, payment providers). Render with `strokeWidth={null}`. |
+| `material-symbols` | Fallback when Tabler lacks a glyph. |
+
+## Don'ts
+
+- No emoji as substitutes (except where the design explicitly uses one — e.g. nation flag pills).
+- No shadow on icons. No gradients on icons.
+- Don't recolour status icons — pair them with the matching `--status-<tone>-fg` token only.
+- Don't mix two line-icon collections in the same surface — pick `tabler` and stay.

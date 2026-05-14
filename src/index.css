@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* Scan kit source so Tailwind picks up classes used inside ui-kit components. */
+@source "../node_modules/@kura/ui-kit/src/**/*.{ts,tsx}";
+
+/* Kit tokens (288 design tokens — colors, surfaces, type scale, radii, shadows). */
+@import "@kura/ui-kit/styles/tokens.css";
+/* Kit theme entrypoint: maps shadcn semantic vars onto Kura tokens + fonts. */
+@import "@kura/ui-kit/styles/theme.css";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Token bridge — maps the doctor app's legacy utility namespaces
+   (bg-jade, text-ink-2, border-line, …) onto Kura kit tokens.
+   Tailwind v4 auto-generates `bg-<name>` / `text-<name>` / `border-<name>` from
+   every `--color-<name>` declared in @theme. Re-pointing those vars at kit
+   tokens reskins the 17k-line App.jsx without rewriting every className.
+   ─────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces (canvas + cards) */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+
+  /* Text */
+  --color-ink: var(--color-text-primary);
+  --color-ink-2: var(--color-text-secondary);
+  --color-ink-3: var(--color-text-tertiary);
+
+  /* Borders */
+  --color-line: var(--border);
+  --color-line-2: var(--ink-100);
+
+  /* Brand (legacy "jade" namespace → kit blue) */
+  --color-jade: var(--brand-700);
+  --color-jade-2: var(--brand-500);
+  --color-jade-soft: var(--brand-50);
+
+  /* Status — terracotta + amber both warn, crimson → danger */
+  --color-terracotta: var(--warn-600);
+  --color-terracotta-soft: var(--warn-50);
+  --color-amber: var(--warn-500);
+  --color-amber-soft: var(--warn-50);
+  --color-crimson: var(--danger-500);
+  --color-crimson-soft: var(--danger-50);
+
+  /* Plum was used for secondary tags; kit reserves --purple-* for AI surfaces,
+     so route plum to info-500 instead. */
+  --color-plum: var(--info-500);
+
+  /* Type stack — kit canon: Noto Sans sans, JetBrains mono. No serif display. */
+  --font-sans: var(--font-family-sans);
+  --font-display: var(--font-family-display);
+  --font-mono: var(--font-family-mono);
+}
+
+/* ── App-specific custom utilities (preserved from legacy index.css) ────── */
+
+.tnum { font-variant-numeric: tabular-nums; }
+.hairline { height: 1px; background: var(--color-line-2); }
+.tab-underline { border-bottom: 2px solid transparent; }
+.tab-underline.active { border-bottom-color: var(--color-jade); }
+
+.booking-pulse-row {
+  animation: booking-pulse-row 1.2s ease-out 3;
+  background: transparent;
+}
+@keyframes booking-pulse-row {
+  0%   { background: var(--color-jade-soft); }
+  60%  { background: rgba(38, 140, 255, 0.16); }
+  100% { background: transparent; }
+}
+
+.scrollbar-subtle { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+.scrollbar-subtle::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-subtle::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-subtle::-webkit-scrollbar-thumb { background: transparent; border-radius: 999px; transition: background 200ms ease; }
+.scrollbar-subtle:hover::-webkit-scrollbar-thumb { background: var(--color-line); }
+.scrollbar-subtle::-webkit-scrollbar-thumb:hover { background: var(--color-ink-3); }
+
+/* Consultation note editor — contentEditable surface. */
+.consult-editor { outline: none; }
+.consult-editor p { margin: 0 0 0.6em 0; }
+.consult-editor p:last-child { margin-bottom: 0; }
+.consult-editor strong { font-weight: 600; color: var(--color-ink); }
+.consult-editor h2 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 0.4em 0 0.3em; color: var(--color-ink); }
+.consult-editor h3 { font-size: 13.5px; font-weight: 600; margin: 0.3em 0 0.2em; color: var(--color-ink); }
+.consult-editor ol, .consult-editor ul { margin: 0.2em 0 0.6em 1.2em; padding-left: 0.6em; }
+.consult-editor li { margin-bottom: 0.2em; }
+.consult-editor ol { list-style: decimal; }
+.consult-editor ul { list-style: disc; }
+.consult-editor .personal-notes {
+  margin-top: 1em;
+  padding: 10px 12px 8px;
+  border: 1px dashed var(--color-line);
+  border-radius: 8px;
+  background: var(--color-surface-2);
+}
+.consult-editor .personal-notes-label {
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}

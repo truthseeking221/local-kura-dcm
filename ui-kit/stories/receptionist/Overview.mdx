@@ -1,0 +1,81 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Receptionist/Overview" />
+
+# Receptionist
+
+Story-level scenarios that show the **receptionist app experience** assembled
+out of the kit's `atoms` / `molecules` / `organisms`. The story tree documents
+the canonical visual contract for each step page — the app's data-wiring
+shells (`apps/receptionist/src/{shell,wizard}/`) consume the same kit organisms
+directly and are reviewed in the running app, not in Storybook.
+
+## Reference
+
+Visual + behavioural source of truth: [`design-receptionist.kura.med/patients`](https://design-receptionist.kura.med/patients).
+Old source for shape and edge cases only: [`Kura-med/design`](https://github.com/Kura-med/design).
+
+## Story tree
+
+| Section | What it documents |
+|---|---|
+| `Molecules/WizardStepBody` | Universal layout preset: optional title + subtitle + right-aligned actions header band, then a vertically-stacked body via children. Replaces the four niche `Wizard*` molecules from the previous delivery. |
+| `Receptionist/Wizard/WizardLayout` | The full wizard frame: header band → 63-px stepper band → scrollable body (with optional 360-px aside) → footer band. |
+| `Receptionist/Wizard/WizardStepFooter` | The bottom action bar: Back / Continue + optional blocker label + optional Enter keycap. |
+| `Receptionist/Wizard/Steps/Step*` | Full-chrome step renderings — the canonical visual contract for each step. Step bodies use `<WizardStepBody>` for the header band and inline raw Tailwind for card sections, field grids, and labelled fields. |
+
+## How this maps to the kit
+
+| App pattern | Kit primitive used | Notes |
+|---|---|---|
+| Wizard frame (header + stepper + body + footer) | `Organisms/WizardLayout` | new in 0.3.0 |
+| Step body (title + subtitle + actions + content) | `Molecules/WizardStepBody` | new in 0.3.0 — universal layout preset |
+| Card section (`rounded-lg border bg-card p-5`) | inline raw Tailwind | inlined cleanly at call sites |
+| Field grid (1 / 2 / 3 / 4 cols) | inline raw Tailwind (`grid grid-cols-1 gap-4 sm:grid-cols-N`) | inlined cleanly at call sites |
+| Labelled form field (required / locked / helper / error) | inline `<Label>` + body + helper/error | inlined cleanly at call sites |
+| Wizard bottom action bar | `Organisms/WizardStepFooter` | new in 0.3.0 |
+| Sidebar | `Organisms/AppSidebar` + `SidebarNavItem` | reuse |
+| Topbar | `Organisms/AppHeader` + slot composition | reuse |
+| Stepper | `Organisms/Stepper` (`StepperStep[]`) | reuse |
+| Subject (patient) header | `Organisms/SubjectHeader` (+ `MetaPill` / `StatusPill`) | reuse |
+| Orders catalogue workspace | `Organisms/CatalogWorkspace` + `Molecules/CatalogNavItem` + `SearchInput` / `FilterBar` / `KeyboardHintsBar` | reusable operational shell; Step 4 owns only receptionist row data and row actions |
+| OrderCart | `@kura/ui-kit/organisms` (`OrderCart`) | canonical receptionist order-rail (`@kuraModules receptionist`) — new in 0.4.0 |
+| EligibilityCard | Card pattern (`bg-card border rounded-lg`) + `Molecules/DataPoint` + `Molecules/StatusPill` | tokens only |
+| Hotkey cheatsheet | `UI/Dialog` + `Atoms/Kbd` + `Molecules/KeyboardHintsBar` | inline composition |
+| Toasts | `Organisms/ToastProvider` + `toast()` | reuse |
+| AI Side panel | _backlog_ | kit lacks `AISidePanel` / `AIChip` / `WhyCard`; brand reserves `--purple-*` for AI surfaces |
+
+## Architectural rules followed
+
+1. **Layer purity.** `<WizardStepBody>` is a molecule. It imports only `cn`. No upward imports. The wizard frame organism (`WizardLayout`) composes slots from outside.
+2. **Generic primitives over module-specific compositions.** `<WizardStepBody>` is universal (no `@kuraModules` tag); reach via `@kura/ui-kit` or `@kura/ui-kit/molecules`. App data-wiring shells (`apps/receptionist/src/shell/*.tsx`, `apps/receptionist/src/wizard/*.tsx`) own the state-to-props wiring and live in the app — they are the correct factoring, not anti-pattern.
+3. **No wrapper stories.** Storybook documents the kit's visual contract — kit organisms have their own stories (`Organisms/AppHeader`, `Organisms/AppSidebar`, `Organisms/SubjectHeader`, `Organisms/Stepper`, …). Per-step `Receptionist/Wizard/Steps/Step*` stories combine multiple kit organisms into realistic scenarios; they don't re-implement the app's shells.
+4. **No new tokens, themes, or icon collections.** All chrome uses existing CSS variables and `<Icon name="tabler:..."/>` via `@iconify/react`.
+5. **Source-only.** No build, no bundle. Edits in `src/` reload live in consumers.
+6. **Mock data only.** Fixtures live in `_fixtures/patient.ts`. No API client, no state machine — each story renders a frozen configured state.
+
+## What's covered
+
+**Per-step canonical visuals** under `Receptionist/Wizard/Steps/` — full chrome (sidebar + header + stepper + step content + cart rail) for all 6 steps:
+
+| Story | State |
+|---|---|
+| Step 1 — Blank walk-in | empty patient, capture-method picker (QR / NFC / Manual) |
+| Step 1 — Identity captured | locked identity card with re-capture link |
+| Step 2 — Patient | review card + contact channels + optional address/refund sections |
+| Step 3 — Insurance · with policy | eligibility card + co-pay banner |
+| Step 3 — Insurance · empty | direct-pay zero-state |
+| Step 4 — Orders | catalog search + popular bundles + lab list |
+| Step 5 — Pre & post consult | intake checklist workflow + post-consult scheduling calendar |
+| Step 6 — Payment | payer + method radios + KHQR ready banner |
+
+**Order Cart** — 4 stories: Default, Empty, Paid, PaidEditPending.
+
+**Modals** — 3 stories: HotkeyCheatsheet, PaidEditPrompt, RecaptureConfirm.
+
+## Backlog
+
+- Mobile drawer + bottom dock + cart sheet
+- AI Side panel (blocked until kit ships AI primitives)
+- Patient queue list view (multi-patient switcher)
+- i18n Khmer locale variants for each step

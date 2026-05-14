@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { TypeSample } from './_components/TypeSample.tsx'
+
+<Meta title="Foundations/Typography" />
+
+# Typography
+
+**Noto Sans** (Latin + Khmer) for body and headings; **JetBrains Mono** for codes, MRNs, and any number that must align in a column.
+
+The semantic classes below are defined in `tokens.css` (`@layer base`) and read directly from the type-scale tokens. Switch the **Density** toolbar between `Compact` and `Comfortable` — body, sm, xs, h, and lg rebind so type compresses without recompiling.
+
+## Display & headings
+
+<TypeSample className="k-display-xl" sample="Kura · ការថែទាំសុខភាព" />
+<TypeSample className="k-display-lg" sample="Kura · ការថែទាំសុខភាព" />
+<TypeSample className="k-display"    sample="Kura · ការថែទាំសុខភាព" />
+<TypeSample className="k-h1" />
+<TypeSample className="k-h2" />
+<TypeSample className="k-h3" />
+<TypeSample className="k-h4" />
+<TypeSample className="k-h5" />
+
+## Body
+
+<TypeSample className="k-body-lg" />
+<TypeSample className="k-body" />
+<TypeSample className="k-body-sm" />
+<TypeSample className="k-caption" />
+
+## Labels & utility
+
+<TypeSample className="k-overline" sample="STILL NEEDED" />
+<TypeSample className="k-label"    sample="Date of birth *" />
+<TypeSample className="k-button"   sample="Continue" />
+<TypeSample className="k-th"       sample="MEMBER NAME" />
+
+## Code & numbers
+
+<TypeSample className="k-code" sample="BC-9X4-2KQ7" />
+<TypeSample className="k-mono" sample="01 23 45 67 89" />
+<TypeSample className="k-num"  sample="$1,247.50" />
+
+## Rules
+
+- Body never below **11px**. Compact density baseline is **12.5px**.
+- Tabular numerals (`font-variant-numeric: tabular-nums`) on tables, totals, and any column where digits must align.
+- Khmer rendering: include both Latin and Khmer in samples — Noto Sans Khmer falls back automatically via `--font-family-sans`.
+- The semibold-650 weight (`--weight-semibold650`) is reserved for tabular numeric emphasis (totals, counts) and the display/h1/h2 headings.

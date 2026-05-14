@@ -1,0 +1,70 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { Ramp } from './_components/Ramp.tsx'
+import { Swatch } from './_components/Swatch.tsx'
+import { StatusPair } from './_components/StatusPair.tsx'
+
+<Meta title="Foundations/Colors" />
+
+# Colors
+
+All colour tokens come from `tokens.css`. Switch the **Theme** toolbar between `Light` and `Dark` — the swatches re-key automatically because they read `var(--…)`.
+
+## Brand
+
+The single brand blue used in product chrome.
+
+<Ramp prefix="--brand" stops={[50, 100, 200, 300, 400, 500, 600, 700, 800, 900]} />
+
+## Secondary · Deep (logo navy)
+
+The logo navy lives at `--secondary-deep-500` (`#10069F`). Surrounding stops carry emphasis chrome (Phlebo header, dense data labels). **Never use `-500` itself in product UI** — it's reserved for the lockup.
+
+<Ramp prefix="--secondary-deep" stops={[50, 100, 200, 300, 400, 500, 600, 700, 800, 900]} />
+
+## Secondary · Light (logo cyan)
+
+The logo cyan lives at `--secondary-light-500` (`#60CDFF`). Surrounding stops carry decorative tints (Patient intake illustrations).
+
+<Ramp prefix="--secondary-light" stops={[50, 100, 200, 300, 400, 500, 600, 700, 800, 900]} />
+
+## Ink (neutrals)
+
+`--ink-0` is pure white; `--ink-900` is the darkest text. `--ink-50` and `--ink-150` are anchor stops for surfaces.
+
+<Ramp prefix="--ink" stops={[0, 50, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900]} />
+
+## Status — bg + fg pairs
+
+Always pair a status colour with an icon and a label. Never status-by-colour-alone.
+
+<div className="flex flex-col gap-3">
+  <StatusPair tone="success" label="✓ Verified" />
+  <StatusPair tone="warning" label="⚠ Verify patient" />
+  <StatusPair tone="danger"  label="✕ Consent declined" />
+  <StatusPair tone="info"    label="ⓘ Manual entry" />
+  <StatusPair tone="neutral" label="◦ Pending" />
+  <StatusPair tone="ai"      label="✦ AI suggestion" />
+</div>
+
+## Canonical surfaces
+
+The page canvas, cards, raised/sunken backgrounds, and the inverse surface used for tooltips.
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <Swatch name="bg"              cssVar="--bg" />
+  <Swatch name="surface"         cssVar="--surface" />
+  <Swatch name="surface-2"       cssVar="--surface-2" />
+  <Swatch name="surface-raised"  cssVar="--surface-raised" />
+  <Swatch name="surface-sunken"  cssVar="--surface-sunken" />
+  <Swatch name="surface-brand"   cssVar="--surface-brand" />
+  <Swatch name="surface-inverse" cssVar="--surface-inverse" />
+</div>
+
+## Canonical borders
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <Swatch name="border"           cssVar="--border" />
+  <Swatch name="border-strong"    cssVar="--border-strong" />
+  <Swatch name="border-emphasis"  cssVar="--border-emphasis" />
+  <Swatch name="border-focus"     cssVar="--border-focus" />
+</div>

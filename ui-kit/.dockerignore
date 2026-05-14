@@ -1,0 +1,16 @@
+node_modules
+storybook-static
+dist
+.worktrees
+.bun
+.DS_Store
+*.log
+*.tsbuildinfo
+.git
+.gitignore
+.claude
+.vscode
+.idea
+docs
+Dockerfile
+.dockerignore

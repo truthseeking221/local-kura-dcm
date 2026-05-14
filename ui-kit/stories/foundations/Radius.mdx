@@ -1,0 +1,47 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { Tile } from './_components/Tile.tsx'
+
+<Meta title="Foundations/Radius" />
+
+# Radius
+
+The canonical radius scale is **three** values — anything else is a backwards-compat alias.
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+  <Tile name="--radius-sm" meta="6px · pills, kbd hints, chips">
+    <div
+      className="size-16 border border-border-strong bg-card"
+      style={{ borderRadius: 'var(--radius-sm)' }}
+      aria-hidden
+    />
+  </Tile>
+  <Tile name="--radius" meta="8px · buttons, inputs, list rows, segmented controls">
+    <div
+      className="size-16 border border-border-strong bg-card"
+      style={{ borderRadius: 'var(--radius)' }}
+      aria-hidden
+    />
+  </Tile>
+  <Tile name="--radius-lg" meta="12px · cards, modals, drawers, side panels">
+    <div
+      className="size-16 border border-border-strong bg-card"
+      style={{ borderRadius: 'var(--radius-lg)' }}
+      aria-hidden
+    />
+  </Tile>
+  <Tile name="--radius-pill" meta="999px · status badges">
+    <div
+      className="h-8 w-24 border border-border-strong bg-card"
+      style={{ borderRadius: 'var(--radius-pill)' }}
+      aria-hidden
+    />
+  </Tile>
+</div>
+
+## Density override
+
+`--radius`, `--radius-lg`, and `--radius-sm` shrink at `data-density="compact"` (6 / 10 / 4) and grow at `data-density="comfortable"` (10 / 14 / 6). Try the **Density** toolbar above.
+
+## Backwards-compat aliases
+
+`--radius-md` aliases the canonical `--radius` so shadcn primitives that read `--radius-md` keep resolving through density overrides. `--radius-xs` (4px) and `--radius-xl` (16px) are also kept for legacy use, but new work should use only `sm` / default / `lg` / `pill`.

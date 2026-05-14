@@ -1,0 +1,24 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Introduction" />
+
+# Kura UI Kit
+
+Design tokens, theme, and React component primitives shared by **receptionist**, **phlebo**, and **patient** clinic apps.
+
+## What's here
+
+- **Foundations** — visualises the design system: colours, typography, spacing, radius, shadow, icons. These read directly from `tokens.css` / `theme.css`. Source-of-truth lives in those files.
+- **Atoms / Molecules / Organisms** — reusable React primitives. Atoms come from shadcn (themed by `theme.css`); molecules and organisms are hand-rolled where the brand or interaction differs from anything shadcn ships.
+
+## Toolbar
+
+The Storybook toolbar exposes three globals so you can preview every story under any combination:
+
+- **Theme** — `light` / `dark` (sets `data-theme` on the root)
+- **Density** — `compact` / `comfortable` (sets `data-density`)
+- **Module** — `receptionist` / `phlebo` / `patient` (sets `data-module`)
+
+## Boundary
+
+Receptionist-specific compositions (`OrderCart`, `WizardHeader`, `IntakeChecklist`, `TestRow`, `BundleRow`, `EligibilityCard`, `PaymentSummary`, `StillNeededPanel`, `BookingCodeInput`) intentionally do **not** live here — they ship from `apps/receptionist`. The kit only owns primitives that all three clinic apps can reuse.

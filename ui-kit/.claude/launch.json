@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Storybook",
+      "runtimeExecutable": "bunx",
+      "runtimeArgs": ["storybook", "dev", "--ci", "-p", "6006"],
+      "port": 6006,
+      "autoPort": false
+    },
+    {
+      "name": "StorybookMerged",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7777", "--directory", "storybook-static"],
+      "port": 7777,
+      "autoPort": false
+    }
+  ]
+}

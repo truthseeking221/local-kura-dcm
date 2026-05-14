@@ -1,0 +1,31 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Phlebo/Overview" />
+
+# Phlebo
+
+Story-level scenarios for the Phlebo app, built from the same `@kura/ui-kit`
+primitives and shell contracts already used by Receptionist.
+
+## Reference
+
+- Live prototype: [`design-phlebo.kura.med`](https://design-phlebo.kura.med/)
+- Source: [`Kura-med/design/apps/phlebo`](https://github.com/Kura-med/design/tree/main/apps/phlebo)
+
+## Story tree
+
+| Section | What it documents |
+|---|---|
+| `Phlebo/Scan Gate` | Scanner-first patient lookup for Vital Signs and Phlebotomy, including queue fallback. |
+| `Phlebo/Vital Signs` | Loaded-patient vitals form with patient context, biometrics, vitals, pain VAS, fasting, and footer actions. |
+| `Phlebo/Phlebotomy` | Collection workspace: patient context, vitals warning, pre-analytical checklist, tube rack, scan toolbar, sample table, and footer gate. |
+| `Phlebo/Tube Inspector` | Cross-queue sample lookup and sample-detail inspection states. |
+| `Phlebo/Modals` | App-specific defer-sample modal using the shared Dialog/Button/Input/Textarea stack. |
+
+## Mapping rules followed
+
+1. Reused kit primitives for application chrome, cards, scanner input, status, badges, buttons, table, banners, dialog, and patient metadata.
+2. Kept tube rack and sample collection flows story-owned because they are Phlebo-specific business UI, not universal kit components.
+3. Fixtures drive queues, journey states, tube catalog, samples, and statuses. Stories do not hardcode one-off static screenshots.
+4. Tube colors are approximated through existing design tokens, not literal hex values, to preserve the token-first rule.
+5. Product UI avoids emoji and photographs, even where the legacy prototype used an emoji pain face.

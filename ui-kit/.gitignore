@@ -1,0 +1,10 @@
+node_modules
+.bun
+.DS_Store
+dist
+storybook-static
+*.log
+*.tsbuildinfo
+.worktrees
+.claude/settings.local.json
+.claude/plans/

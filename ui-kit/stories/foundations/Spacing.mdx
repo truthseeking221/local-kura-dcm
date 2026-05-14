@@ -1,0 +1,41 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { Tile } from './_components/Tile.tsx'
+
+<Meta title="Foundations/Spacing" />
+
+# Spacing
+
+The spacing scale is **4-pixel-based** (with one half-step at `--space-0-5`). Tokens map to pixel values that don't shift with density — density controls layout heights (`--row-h`, `--field-h`, `--gap`), not spacing primitives.
+
+<div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
+  {[
+    ['--space-0-5', '2px',  2],
+    ['--space-1',   '4px',  4],
+    ['--space-2',   '8px',  8],
+    ['--space-3',   '12px', 12],
+    ['--space-4',   '16px', 16],
+    ['--space-5',   '20px', 20],
+    ['--space-6',   '24px', 24],
+    ['--space-8',   '32px', 32],
+    ['--space-10',  '40px', 40],
+    ['--space-12',  '48px', 48],
+    ['--space-16',  '64px', 64],
+  ].map(([name, meta, size]) => (
+    <Tile key={name} name={name} meta={meta}>
+      <div
+        style={{ width: size, height: size, background: 'var(--brand-500)' }}
+        className="rounded-[var(--radius-sm)]"
+        aria-hidden
+      />
+    </Tile>
+  ))}
+</div>
+
+## Density-aware layout tokens
+
+These shift with the **Density** toolbar (compact / cozy / comfortable):
+
+- `--row-h` — list / table row height
+- `--field-h` — form field height
+- `--card-pad` — card inner padding
+- `--gap` — default gap between siblings inside a card

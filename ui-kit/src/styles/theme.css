@@ -1,0 +1,194 @@
+/* ============================================================================
+   Kura UI Kit — theme entrypoint
+   Consume from each app's globals.css after `@import 'tailwindcss';`.
+   This file pulls in tokens, fonts, the shadcn radix-nova preset, and maps
+   shadcn semantic vars (`--color-primary`, `--radius`, `--font-sans`, …) onto
+   Kura tokens so shadcn primitives render in Kura's brand without rewrites.
+   ============================================================================ */
+
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import './tokens.css';
+
+@import '@fontsource/noto-sans/400.css';
+@import '@fontsource/noto-sans/500.css';
+@import '@fontsource/noto-sans/600.css';
+@import '@fontsource/noto-sans/700.css';
+@import '@fontsource/noto-sans-khmer/400.css';
+@import '@fontsource/noto-sans-khmer/500.css';
+@import '@fontsource/noto-sans-khmer/600.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+@custom-variant dark (&:is([data-theme='dark'] *));
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+@theme inline {
+  --font-heading: var(--font-family-sans);
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
+
+  --color-background: var(--color-bg-canvas);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-bg-surface);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-bg-surface);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--brand-500);
+  --color-primary-foreground: var(--color-text-on-brand);
+  --color-secondary: var(--color-bg-surface-sunken);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-bg-surface-muted);
+  --color-muted-foreground: var(--color-text-tertiary);
+  --color-accent: var(--brand-50);
+  --color-accent-foreground: var(--brand-700);
+  --color-destructive: var(--danger-500);
+  --color-destructive-foreground: var(--ink-0);
+  --color-success: var(--success-500);
+  --color-success-foreground: var(--ink-0);
+  --color-warning: var(--warn-500);
+  --color-warning-foreground: var(--ink-0);
+  --color-info: var(--info-500);
+  --color-info-foreground: var(--ink-0);
+  --color-border: var(--color-border-subtle);
+  --color-input: var(--color-border-default);
+  --color-ring: var(--brand-500);
+
+  --color-chart-1: var(--brand-500);
+  --color-chart-2: var(--info-500);
+  --color-chart-3: var(--success-500);
+  --color-chart-4: var(--warn-500);
+  --color-chart-5: var(--danger-500);
+
+  --color-sidebar: var(--color-bg-surface);
+  --color-sidebar-foreground: var(--color-text-secondary);
+  --color-sidebar-primary: var(--brand-500);
+  --color-sidebar-primary-foreground: var(--color-text-on-brand);
+  --color-sidebar-accent: var(--brand-50);
+  --color-sidebar-accent-foreground: var(--brand-700);
+  --color-sidebar-border: var(--color-border-subtle);
+  --color-sidebar-ring: var(--brand-500);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  --color-ink-0: var(--ink-0);
+  --color-ink-50: var(--ink-50);
+  --color-ink-100: var(--ink-100);
+  --color-ink-150: var(--ink-150);
+  --color-ink-200: var(--ink-200);
+  --color-ink-300: var(--ink-300);
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-600: var(--ink-600);
+  --color-ink-700: var(--ink-700);
+  --color-ink-800: var(--ink-800);
+  --color-ink-900: var(--ink-900);
+
+  /* AI accent — exposed for Tailwind utilities (bg-purple-500, text-purple-500).
+     Reserved for AISidePanel, AIChip, WhyCard. Never use outside AI surfaces. */
+  --color-purple-50: var(--purple-50);
+  --color-purple-100: var(--purple-100);
+  --color-purple-200: var(--purple-200);
+  --color-purple-300: var(--purple-300);
+  --color-purple-400: var(--purple-400);
+  --color-purple-500: var(--purple-500);
+  --color-purple-600: var(--purple-600);
+  --color-purple-700: var(--purple-700);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  /* Kura-prefixed density-aware typography utilities.
+     These shift with [data-density] because they reference the
+     density-aware --font-* tokens, not the fixed --type-* scale.
+     Use: <p className="text-k-body">…</p>  → resolves to 12.5 at
+     compact / 13.5 at cozy / 14 at comfortable. */
+  --text-k-body: var(--font-body);
+  --text-k-h: var(--font-h);
+  --text-k-sm: var(--font-sm);
+  --text-k-xs: var(--font-xs);
+  --text-k-lg: var(--font-lg);
+
+  /* Kura-prefixed letter-spacing utilities. */
+  --tracking-k-tight: var(--tracking-tight);
+  --tracking-k-base: 0;
+  --tracking-k-wide: var(--tracking-wide);
+  --tracking-k-wider: var(--tracking-wider);
+  --tracking-k-caps: var(--tracking-caps);
+
+  /* Kura-prefixed line-height utilities. */
+  --leading-k-tight: var(--leading-tight);
+  --leading-k-snug: var(--leading-snug);
+  --leading-k-base: var(--leading-base);
+  --leading-k-relaxed: var(--leading-relaxed);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-sans);
+    font-size: var(--font-body);
+    line-height: var(--leading-base);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-selection);
+  }
+  table,
+  .tabular-nums,
+  [data-slot='table'] {
+    font-variant-numeric: tabular-nums;
+  }
+  *:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-radius: var(--radius-sm);
+  }
+}
+
+.kura-toast-close[data-close-button] {
+  position: absolute !important;
+  top: calc(var(--space-2) + var(--space-0-5)) !important;
+  right: var(--space-3) !important;
+  left: auto !important;
+  transform: none !important;
+  display: inline-flex !important;
+  width: 22px !important;
+  height: 22px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: var(--radius-sm) !important;
+  background: transparent !important;
+  color: var(--ink-400) !important;
+}
+
+.kura-toast-close[data-close-button] > svg {
+  display: block !important;
+  width: 13px !important;
+  height: 13px !important;
+  margin: 0 !important;
+}

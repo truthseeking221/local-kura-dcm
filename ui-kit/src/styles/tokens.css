@@ -1,0 +1,487 @@
+/* ============================================================================
+   Kura Design System — Colors & Type
+   Mirror of Storybook/styles/tokens.css + Storybook/tokens/typography.ts
+   Synced from Kura-med/design @ main · Storybook/stories/Tokens/*
+
+   Brand: #268CFF (UI primary, --brand-500)
+   Logo: navy --secondary-deep-500 (#10069F) + cyan --secondary-light-500 (#60CDFF)
+         — these now live as full 10-stop ramps; only the -500 stops appear in
+         the lockup. The intermediate stops are used for emphasis chrome
+         (Phlebo header, dense data labels) and decorative tints (Patient intake
+         illustrations).
+   AI accent: --purple-500 — AISidePanel, AIChip, WhyCard
+
+   Font: Noto Sans (Latin + Khmer); JetBrains Mono for codes/MRNs.
+         Bundled via @fontsource (see theme.css).
+   ============================================================================ */
+
+:root,
+[data-theme='light'] {
+  /* ── Brand ramp (anchor: --brand-500 #268CFF) ───────────────────── */
+  --brand-50: #e9f3ff;
+  --brand-100: #d4e8ff;
+  --brand-200: #a8d1ff;
+  --brand-300: #7dbaff;
+  --brand-400: #51a3ff;
+  --brand-500: #268cff; /* primary */
+  --brand-600: #1e70cc;
+  --brand-700: #175499;
+  --brand-800: #0f3866;
+  --brand-900: #081c33;
+  --brand-rgb: 38, 140, 255;
+
+  /* ── Secondary · Deep (anchor: --secondary-deep-500 #10069F) ────── */
+  /* Logo navy + emphasis chrome (Phlebo header, dense data labels)   */
+  --secondary-deep-50: #ecebf7;
+  --secondary-deep-100: #d4d1ee;
+  --secondary-deep-200: #a8a2dd;
+  --secondary-deep-300: #7d74cc;
+  --secondary-deep-400: #5145bb;
+  --secondary-deep-500: #10069f;
+  --secondary-deep-600: #0d057f;
+  --secondary-deep-700: #0a045f;
+  --secondary-deep-800: #06023f;
+  --secondary-deep-900: #03011f;
+
+  /* ── Secondary · Light (anchor: --secondary-light-500 #60CDFF) ──── */
+  /* Logo cyan + tints, illustrations, decorative (Patient intake)    */
+  --secondary-light-50: #f2fbff;
+  --secondary-light-100: #dff5ff;
+  --secondary-light-200: #c0ebff;
+  --secondary-light-300: #a0e1ff;
+  --secondary-light-400: #80d7ff;
+  --secondary-light-500: #60cdff;
+  --secondary-light-600: #3da8da;
+  --secondary-light-700: #2982ad;
+  --secondary-light-800: #195c80;
+  --secondary-light-900: #0c3854;
+
+  /* Logo aliases — DO NOT use in product UI; reserved for the lockup */
+  --logo-navy: var(--secondary-deep-500);
+  --logo-cyan: var(--secondary-light-500);
+
+  /* ── Ink (neutrals) ─────────────────────────────────────────────── */
+  --ink-0: #ffffff;
+  --ink-50: #f6f7fa;
+  --ink-100: #eef0f5;
+  --ink-150: #e3e6ee;
+  --ink-200: #d6dae5;
+  --ink-300: #b3b9c9;
+  --ink-400: #8d94a8;
+  --ink-500: #6b7388;
+  --ink-600: #475066;
+  --ink-700: #2a3447;
+  --ink-800: #1a2335;
+  --ink-900: #0b1424;
+
+  /* ── Status ─────────────────────────────────────────────────────── */
+  --success-50: #e7f8ee;
+  --success-100: #c7eed7;
+  --success-500: #1aa163;
+  --success-600: #128a52;
+  --success-700: #0d6a3f;
+
+  --warn-50: #fff8e6;
+  --warn-100: #fdecc4;
+  --warn-500: #d97706;
+  --warn-600: #8a5600;
+  --warn-700: #6a4200;
+
+  --danger-50: #fdecec;
+  --danger-100: #fbd1d1;
+  --danger-500: #d83a3a;
+  --danger-600: #b22929;
+  --danger-700: #891f1f;
+
+  --info-50: #e6f9fd;
+  --info-500: #0e7490;
+  --info-600: #0a5a72;
+
+  /* ── AI accent (purple) — AISidePanel, AIChip, WhyCard ──────────── */
+  --purple-50: #f1ecfb;
+  --purple-100: #e0d4f5;
+  --purple-200: #c2a9eb;
+  --purple-300: #a37ee0;
+  --purple-400: #8553d6;
+  --purple-500: #6a35c0;
+  --purple-600: #532a99;
+  --purple-700: #3d1f73;
+
+  /* ── Canonical surfaces (per Storybook) ─────────────────────────── */
+  --bg: var(--ink-50); /* page canvas */
+  --surface: var(--ink-0); /* cards, modals, panels */
+  --surface-2: #fafbfd; /* alt rows / hover stripe */
+  --surface-raised: var(--ink-0);
+  --surface-sunken: var(--ink-100);
+  --surface-inverse: var(--ink-900);
+  --surface-brand: var(--brand-50);
+  --overlay: rgba(11, 20, 36, 0.45);
+  --scrim: rgba(11, 20, 36, 0.55);
+
+  /* ── Canonical borders ──────────────────────────────────────────── */
+  --border: #e6e9f1; /* hairline, default 1px dividers */
+  --border-strong: var(--ink-200); /* selected card outline, table separator */
+  --border-emphasis: var(--ink-300); /* extra emphasis */
+  --border-focus: var(--brand-500);
+
+  /* ── Text ──────────────────────────────────────────────────────── */
+  --color-text-primary: var(--ink-800);
+  --color-text-secondary: var(--ink-600);
+  --color-text-tertiary: var(--ink-500);
+  --color-text-muted: var(--ink-400);
+  --color-text-disabled: var(--ink-300);
+  --color-text-inverse: var(--ink-0);
+  --color-text-on-brand: var(--ink-0);
+  --color-text-on-success: var(--success-700);
+  --color-text-on-warning: var(--warn-700);
+  --color-text-on-danger: var(--danger-700);
+  --color-text-on-info: var(--info-600);
+  --color-text-link: var(--brand-700);
+  --color-text-link-hover: var(--brand-800);
+  --color-text-placeholder: var(--ink-400);
+
+  /* ── Canonical status pairs (bg + fg) ───────────────────────────── */
+  --status-success-bg: var(--success-50);
+  --status-success-fg: var(--success-600);
+  --status-warning-bg: var(--warn-50);
+  --status-warning-fg: var(--warn-600);
+  --status-danger-bg: var(--danger-50);
+  --status-danger-fg: var(--danger-600);
+  --status-info-bg: var(--info-50);
+  --status-info-fg: var(--info-500);
+  --status-neutral-bg: var(--ink-100);
+  --status-neutral-fg: var(--ink-600);
+  --status-ai-bg: var(--purple-50);
+  --status-ai-fg: var(--purple-500);
+
+  /* Focus / selection */
+  --color-focus-ring: rgba(var(--brand-rgb), 0.32);
+  --color-selection: rgba(var(--brand-rgb), 0.22);
+
+  /* ── Shadow scale (soft, clinical) ─────────────────────────────── */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 6px 16px -6px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 18px 48px -12px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-xl: 0 30px 80px -20px rgba(15, 23, 42, 0.28), 0 8px 20px rgba(15, 23, 42, 0.10);
+  --shadow-inset: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
+  /* Width-based softer focus for dense surfaces (catalog/order-cart
+     SearchInput density="compact"). Opacity stays at canonical 0.32 —
+     dropping it would risk WCAG 2.4.7 focus visibility. */
+  --shadow-focus-compact: 0 0 0 2px rgba(var(--brand-rgb), 0.32);
+  /* Persistent "active/selected" halo (Stepper active step). Distinct
+     from --shadow-focus: not a focus indicator, but a current-item
+     marker. When a selected element ALSO receives :focus-visible, the
+     focus rule wins in source order — verify per component. */
+  --shadow-selected: 0 0 0 3px rgba(var(--brand-rgb), 0.18);
+
+  /* ── Spacing (4px base) ────────────────────────────────────────── */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Radius (canonical: sm / default / lg) ─────────────────────── */
+  --radius-sm: 6px; /* pills, kbd hints, chips */
+  --radius: 8px; /* buttons, inputs, list rows, segmented controls */
+  --radius-lg: 12px; /* cards, modals, drawers, side panels */
+  --radius-pill: 999px; /* fixed — status badges (intentional, not part of the canonical scale) */
+
+  /* ── Density (default = cozy) ──────────────────────────────────── */
+  --row-h: 44px;
+  --card-pad: 20px;
+  --gap: 16px;
+  --field-h: 36px;
+  --font-body: 13.5px;
+  --font-sm: 12px;
+  --font-xs: 11px;
+  --font-h: 14.5px;
+  --font-lg: 16px;
+
+  /* ── Motion ────────────────────────────────────────────────────── */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-moderate: 240ms;
+  --duration-slow: 320ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1.2);
+  --easing-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ── Type families ─────────────────────────────────────────────── */
+  --font-family-sans: 'Noto Sans', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-display: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale (clinical density) */
+  --type-2xs: 11px;
+  --type-xs: 12px;
+  --type-sm: 12.5px;
+  --type-base: 13.5px;
+  --type-md: 14.5px;
+  --type-lg: 16px;
+  --type-xl: 18px;
+  --type-2xl: 20px;
+  --type-3xl: 24px;
+  --type-4xl: 30px;
+  --type-5xl: 36px;
+  --type-6xl: 44px;
+
+  /* Weights (650 reserved for tabular numeric emphasis: totals, counts) */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-semibold650: 650;
+  --weight-bold: 700;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.25;
+  --leading-base: 1.45;
+  --leading-relaxed: 1.6;
+
+  --tracking-tight: -0.01em;
+  --tracking-base: 0;
+  --tracking-wide: 0.01em;
+  --tracking-wider: 0.04em;
+  --tracking-caps: 0.06em;
+
+  /* ── Backwards-compat aliases ─────────────────────────────────────
+     Older token names (--color-bg-*, --color-border-*, --color-status-*,
+     --radius-md, --radius-xs, --radius-xl) are aliased onto canonical names
+     so existing components and consumer apps keep resolving. New work should
+     prefer the canonical names from the Storybook spec. */
+  --color-bg-canvas: var(--bg);
+  --color-bg-surface: var(--surface);
+  --color-bg-surface-muted: var(--surface-2);
+  --color-bg-surface-raised: var(--surface-raised);
+  --color-bg-surface-sunken: var(--surface-sunken);
+  --color-bg-overlay: var(--overlay);
+  --color-bg-scrim: var(--scrim);
+  --color-bg-inverse: var(--surface-inverse);
+  --color-bg-brand: var(--surface-brand);
+  --color-bg-brand-solid: var(--brand-500);
+  --color-bg-brand-solid-hover: var(--brand-600);
+  --color-bg-brand-solid-pressed: var(--brand-700);
+  --color-bg-success: var(--status-success-bg);
+  --color-bg-warning: var(--status-warning-bg);
+  --color-bg-danger: var(--status-danger-bg);
+  --color-bg-info: var(--status-info-bg);
+
+  --color-border-subtle: var(--border);
+  --color-border-default: var(--border-strong);
+  --color-border-strong: var(--border-emphasis);
+  --color-border-focus: var(--border-focus);
+  --color-border-success: var(--success-500);
+  --color-border-warning: var(--warn-500);
+  --color-border-danger: var(--danger-500);
+  --color-border-info: var(--info-500);
+
+  --color-status-success-fg: var(--status-success-fg);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-warning-fg: var(--status-warning-fg);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-danger-fg: var(--status-danger-fg);
+  --color-status-danger-bg: var(--status-danger-bg);
+  --color-status-info-fg: var(--status-info-fg);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-neutral-fg: var(--status-neutral-fg);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+
+  /* Legacy radius names. --radius-md aliases the canonical default so shadcn
+     primitives that read --radius-md (e.g. button.tsx) keep resolving through
+     density overrides. */
+  --radius-xs: 4px;
+  --radius-md: var(--radius);
+  --radius-xl: 16px;
+}
+
+/* ── Dark theme ───────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --bg: #0b1424;
+  --surface: #111c30;
+  --surface-2: #0e1729;
+  --surface-raised: #152340;
+  --surface-sunken: #0a1322;
+  --surface-brand: #0f2a55;
+
+  --border: #1f2a40;
+  --border-strong: #2a3447;
+  --border-emphasis: #475066;
+  --border-focus: var(--brand-300);
+
+  --color-text-primary: #e8edf6;
+  --color-text-secondary: #b8c0d2;
+  --color-text-tertiary: #8d94a8;
+  --color-text-muted: #6b7388;
+  --color-text-disabled: #475066;
+  --color-text-inverse: #0b1424;
+  --color-text-on-brand: #0b1424;
+  --color-text-link: var(--brand-300);
+  --color-text-link-hover: var(--brand-200);
+
+  --status-success-bg: #0f2a1d;
+  --status-success-fg: #62d49a;
+  --status-warning-bg: #2a1f0b;
+  --status-warning-fg: #f3b14b;
+  --status-danger-bg: #2a1212;
+  --status-danger-fg: #ff7a7a;
+  --status-info-bg: #0b2229;
+  --status-info-fg: #5fc1d6;
+  --status-ai-bg: #1a0f33;
+  --status-ai-fg: #b89cef;
+
+  --color-focus-ring: rgba(125, 186, 255, 0.45);
+
+  /* Kit-specific brand-solid swap: dark mode uses lighter brand stops for
+     contrast on dark surfaces. The canonical DS doesn't override these, but
+     the kit deliberately does. */
+  --color-bg-brand-solid: var(--brand-400);
+  --color-bg-brand-solid-hover: var(--brand-300);
+  --color-bg-brand-solid-pressed: var(--brand-200);
+}
+
+/* ── Density variants ────────────────────────────────────────── */
+/* Per Storybook preview.tsx: receptionist runs at compact, phlebo at cozy,
+   patient at comfortable. cozy is the canonical default.                   */
+[data-density='compact'] {
+  --row-h: 38px;
+  --card-pad: 14px;
+  --gap: 12px;
+  --field-h: 32px;
+  --font-body: 12.5px;
+  --font-sm: 11.5px;
+  --font-xs: 10.5px;
+  --font-h: 13.5px;
+  --font-lg: 15px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-sm: 4px;
+}
+
+[data-density='cozy'] {
+  --row-h: 44px;
+  --card-pad: 20px;
+  --gap: 16px;
+  --field-h: 36px;
+  --font-body: 13.5px;
+  --font-sm: 12px;
+  --font-xs: 11px;
+  --font-h: 14.5px;
+  --font-lg: 16px;
+}
+
+[data-density='comfortable'] {
+  --row-h: 52px;
+  --card-pad: 24px;
+  --gap: 20px;
+  --field-h: 40px;
+  --font-body: 14px;
+  --font-sm: 12.5px;
+  --font-xs: 11px;
+  --font-h: 15px;
+  --font-lg: 17px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-moderate: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+/* ── Semantic type styles ───────────────────────────────────── */
+.k-display-xl {
+  font: var(--weight-bold) var(--type-6xl) / var(--leading-tight) var(--font-family-display);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+}
+.k-display-lg {
+  font: var(--weight-bold) var(--type-5xl) / var(--leading-tight) var(--font-family-display);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+}
+.k-display {
+  font: var(--weight-semibold650) var(--type-4xl) / var(--leading-snug) var(--font-family-display);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+}
+.k-h1 {
+  font: var(--weight-semibold650) var(--type-3xl) / var(--leading-snug) var(--font-family-sans);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text-primary);
+}
+.k-h2 {
+  font: var(--weight-semibold650) var(--type-2xl) / var(--leading-snug) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-h3 {
+  font: var(--weight-semibold) var(--type-xl) / var(--leading-snug) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-h4 {
+  font: var(--weight-semibold) var(--type-lg) / var(--leading-snug) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-h5 {
+  font: var(--weight-semibold) var(--type-md) / var(--leading-snug) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-body-lg {
+  font: var(--weight-regular) var(--type-lg) / var(--leading-base) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-body {
+  font: var(--weight-regular) var(--type-base) / var(--leading-base) var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-body-sm {
+  font: var(--weight-regular) var(--type-sm) / var(--leading-base) var(--font-family-sans);
+  color: var(--color-text-secondary);
+}
+.k-caption {
+  font: var(--weight-regular) var(--type-xs) / var(--leading-base) var(--font-family-sans);
+  color: var(--color-text-tertiary);
+}
+.k-overline {
+  font: var(--weight-semibold) var(--type-2xs) / var(--leading-snug) var(--font-family-sans);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.k-label {
+  font: var(--weight-medium) var(--type-sm) / 1.3 var(--font-family-sans);
+  color: var(--color-text-primary);
+}
+.k-button {
+  font: var(--weight-semibold) var(--type-base) / 1 var(--font-family-sans);
+}
+.k-code {
+  font: var(--weight-regular) var(--type-sm) / 1.5 var(--font-family-mono);
+}
+.k-th {
+  font: var(--weight-semibold) var(--type-xs) / var(--leading-snug) var(--font-family-sans);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.k-mono {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+}
+.k-num {
+  font-weight: var(--weight-semibold650);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,42 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+import { Tile } from './_components/Tile.tsx'
+
+<Meta title="Foundations/Shadow" />
+
+# Shadow
+
+Soft, clinical elevation. Shadow values do **not** change between light and dark — surfaces darken instead, so a tile with `--shadow-md` still reads as raised in dark mode.
+
+<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+  {[
+    ['--shadow-xs', 'hairline · top-of-row separators',          'var(--shadow-xs)'],
+    ['--shadow-sm', 'list rows · resting cards',                  'var(--shadow-sm)'],
+    ['--shadow-md', 'popovers · dropdowns · tooltips',            'var(--shadow-md)'],
+    ['--shadow-lg', 'modals · floating panels',                   'var(--shadow-lg)'],
+    ['--shadow-xl', 'sheet drawers · command palette',            'var(--shadow-xl)'],
+    ['--shadow-inset', 'pressed states · sunken inputs',          'var(--shadow-inset)'],
+  ].map(([name, meta, value]) => (
+    <Tile key={name} name={name} meta={meta}>
+      <div
+        className="size-16 rounded-[var(--radius-lg)] bg-card border border-border"
+        style={{ boxShadow: value }}
+        aria-hidden
+      />
+    </Tile>
+  ))}
+</div>
+
+## Focus ring
+
+`--shadow-focus` is the standard focus-ring (3px outline using `--color-focus-ring`). It's applied automatically in `tokens.css`'s `@layer base` to anything matching `*:focus-visible`.
+
+<div className="flex items-center gap-4">
+  <button
+    type="button"
+    className="rounded-[var(--radius)] border border-border bg-card px-4 py-2 text-sm"
+    style={{ boxShadow: 'var(--shadow-focus)' }}
+  >
+    Focused button
+  </button>
+  <code className="font-mono text-[11px] text-muted-foreground">--shadow-focus</code>
+</div>
