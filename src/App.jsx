@@ -1797,7 +1797,7 @@ function TopBar({ onOrderLabs }) {
       right={
         <>
           <Button data-tour="topbar-order-labs" onClick={onOrderLabs} size="sm">
-            <Plus size={14} /> Order labs
+            <Plus size={14} /> New order
           </Button>
           <Button variant="ghost" size="icon-sm" aria-label="Notifications" className="relative">
             <Bell size={17} />
@@ -13772,82 +13772,96 @@ function PatientsListView({ patients, detailMode, selected, onOpenChart, onClose
   const sortedPanel = [...panelMatches].sort(sortFn);
   const sortedKura  = [...kuraWideMatches].sort(sortFn);
 
+  // Card layout for small panels: <5 patients, no search query, no Kura-wide
+  // matches. Acts more like a work queue than a directory.
+  const useCardLayout = sortedPanel.length > 0 && sortedPanel.length < 5 && !q && sortedKura.length === 0;
+  // Local search hidden until panel has enough rows to need filtering. Global
+  // search in TopBar covers everything until then.
+  const showLocalSearch = patients.length >= 5;
+
   return (
     <div className="px-8 py-6 max-w-[1400px] mx-auto">
       {/* Page header */}
-      <div className="flex items-end justify-between mb-5">
+      <div className="flex items-end justify-between mb-6">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] text-ink-3 mb-1">Patients</div>
-          <h1 className="font-display text-[30px] font-medium leading-none mb-1">Your patients</h1>
-          <p className="text-[12.5px] text-ink-3">
-            All patients you've bridged into your cabinet. Search and open a chart to treat.
+          <h1 className="font-display text-[30px] font-medium leading-none mb-1.5">Patients</h1>
+          <p className="text-[13px] text-ink-3">
+            Open a chart to continue care.
           </p>
         </div>
-        <button onClick={onNewPatient} className="inline-flex items-center gap-1.5 text-[12px] bg-jade text-white px-3 py-2 rounded-md font-medium hover:opacity-90">
+        <Button variant="outline" size="sm" onClick={onNewPatient}>
           <Plus size={12} /> New patient
-        </button>
+        </Button>
       </div>
 
-      {/* Search + filters */}
-      <div className="bg-surface border border-line rounded-xl p-3 mb-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex-1 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Search name, Khmer name, MRN, phone…"
-              className="w-full pl-9 pr-3 py-2 rounded-md border border-line bg-surface text-[13px] focus:border-ink focus:outline-none"
-            />
-          </div>
-          <button className="inline-flex items-center gap-1.5 text-[12px] text-ink-2 px-2.5 py-2 rounded-md border border-line hover:border-ink">
-            <Filter size={12} /> Filters
-          </button>
-        </div>
-      </div>
-
-      {/* Result count */}
-      <div className="flex items-baseline justify-between mb-2 text-[11.5px] text-ink-3">
-        <span>
-          <span className="font-semibold text-ink">{sortedPanel.length}</span> in your panel{q && <> matching <span className="font-mono">"{q}"</span></>}
-          {sortedKura.length > 0 && <span className="ml-2">· <span className="font-semibold text-ink">{sortedKura.length}</span> Kura-wide match{sortedKura.length === 1 ? "" : "es"}</span>}
-        </span>
-        <span>Click any row to open chart</span>
-      </div>
-
-      {/* Patient table — your panel */}
-      <div className="bg-surface border border-line rounded-xl overflow-hidden">
-        <table className="w-full text-[12.5px]">
-          <thead className="bg-surface-2 text-[10.5px] uppercase tracking-[0.14em] text-ink-3 border-b border-line-2">
-            <tr>
-              <SortableTh col="name"     sort={sort} onSort={setSortCol}>Patient</SortableTh>
-              <SortableTh col="age"      sort={sort} onSort={setSortCol}>Age · Sex</SortableTh>
-              <SortableTh col="lastSeen" sort={sort} onSort={setSortCol}>Last seen</SortableTh>
-              <th className="text-left px-3 py-2.5 font-semibold">Status</th>
-              <th className="text-right px-4 py-2.5 font-semibold">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line-2">
-            {sortedPanel.map(p => (
-              <PatientListRow key={p.id} patient={p} onOpen={() => onOpenChart(p.id)} />
-            ))}
-          </tbody>
-        </table>
-        {sortedPanel.length === 0 && (
-          <div className="px-4 py-12 text-center">
-            <Search size={22} className="mx-auto text-ink-3 mb-2" />
-            <p className="text-[12.5px] text-ink-2 mb-1">
-              {q ? <>No patients in your panel match "<span className="font-mono">{q}</span>"</> : "No patients in your panel."}
-            </p>
-            {q && !includeKuraWide && (
-              <p className="text-[11px] text-ink-3 mb-3">Tick "Also search Kura-wide for matches" above, or add this person as a new patient.</p>
-            )}
-            <button onClick={onNewPatient} className="inline-flex items-center gap-1.5 text-[12px] bg-jade text-white px-3 py-1.5 rounded-md font-medium">
-              <Plus size={11} /> Add new patient
+      {/* Search + filters — hidden until panel has enough rows */}
+      {showLocalSearch && (
+        <div className="bg-surface border border-line rounded-xl p-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
+              <input
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Search patients"
+                className="w-full pl-9 pr-3 py-2 rounded-md border border-line bg-surface text-[13px] focus:border-ink focus:outline-none"
+              />
+            </div>
+            <button className="inline-flex items-center gap-1.5 text-[12px] text-ink-2 px-2.5 py-2 rounded-md border border-line hover:border-ink">
+              <Filter size={12} /> Filters
             </button>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Result count */}
+      <div className="mb-3 text-[11.5px] text-ink-3">
+        <span className="font-semibold text-ink">{sortedPanel.length}</span> patient{sortedPanel.length === 1 ? "" : "s"}
+        {q && <> matching <span className="font-mono">"{q}"</span></>}
+        {sortedKura.length > 0 && <span className="ml-2">· <span className="font-semibold text-ink">{sortedKura.length}</span> Kura-wide match{sortedKura.length === 1 ? "" : "es"}</span>}
       </div>
+
+      {/* Cards for small panels — clearer next step than a single table row */}
+      {useCardLayout ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {sortedPanel.map(p => (
+            <PatientCard key={p.id} patient={p} onOpen={() => onOpenChart(p.id)} />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-surface border border-line rounded-xl overflow-hidden">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-surface-2 text-[10.5px] uppercase tracking-[0.14em] text-ink-3 border-b border-line-2">
+              <tr>
+                <SortableTh col="name"     sort={sort} onSort={setSortCol}>Patient</SortableTh>
+                <SortableTh col="age"      sort={sort} onSort={setSortCol}>Age · Sex</SortableTh>
+                <SortableTh col="lastSeen" sort={sort} onSort={setSortCol}>Last seen</SortableTh>
+                <th className="text-left px-3 py-2.5 font-semibold">Next step</th>
+                <th className="text-right px-4 py-2.5 font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line-2">
+              {sortedPanel.map(p => (
+                <PatientListRow key={p.id} patient={p} onOpen={() => onOpenChart(p.id)} />
+              ))}
+            </tbody>
+          </table>
+          {sortedPanel.length === 0 && (
+            <div className="px-4 py-12 text-center">
+              <Search size={22} className="mx-auto text-ink-3 mb-2" />
+              <p className="text-[12.5px] text-ink-2 mb-1">
+                {q ? <>No patients in your panel match "<span className="font-mono">{q}</span>"</> : "No patients in your panel."}
+              </p>
+              {q && !includeKuraWide && (
+                <p className="text-[11px] text-ink-3 mb-3">Tick "Also search Kura-wide for matches" above, or add this person as a new patient.</p>
+              )}
+              <Button size="sm" onClick={onNewPatient}>
+                <Plus size={11} /> Add new patient
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Kura-wide section — only renders when there are matches */}
       {sortedKura.length > 0 && (
@@ -13995,12 +14009,57 @@ function PatientListRow({ patient, onOpen }) {
             Bridge to panel <ArrowRight size={11} />
           </button>
         ) : (
-          <button className="text-[11px] text-ink-2 hover:text-ink inline-flex items-center gap-1">
-            View details <ArrowRight size={11} />
+          <button className="text-[11px] text-jade-2 font-medium hover:underline inline-flex items-center gap-1">
+            Open chart <ArrowRight size={11} />
           </button>
         )}
       </td>
     </tr>
+  );
+}
+
+/* Patient card — used when the panel is small (<5). Gives the doctor a clear
+   next action instead of a thin table row. Promotes "Open chart" as primary;
+   secondary actions stay quiet. */
+function PatientCard({ patient, onOpen }) {
+  const flagDot = {
+    critical: "bg-crimson",
+    warning:  "bg-amber",
+    ok:       "bg-jade",
+  }[patient.flag] || "bg-line";
+  const initials = patient.name.split(" ").map(s => s[0]).slice(0, 2).join("");
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="text-left bg-surface border border-line rounded-xl p-4 hover:border-ink-3 transition group"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-md flex items-center justify-center font-semibold text-[12px] shrink-0 bg-jade-soft text-jade">
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-ink text-[14px] leading-tight">{patient.name}</div>
+          <div className="text-[11.5px] text-ink-3 mt-0.5">
+            {patient.age} · {patient.sex === "M" ? "Male" : "Female"} · Last seen {humanizeLastSeen(patient.lastSeen)}
+          </div>
+        </div>
+      </div>
+
+      {patient.summary && patient.summary !== "—" && (
+        <div className="mt-3 pt-3 border-t border-line-2 flex items-start gap-2">
+          <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${flagDot}`} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[10.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-0.5">Next step</div>
+            <div className="text-[12.5px] text-ink-2 leading-snug">{patient.summary}</div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[12px] font-medium text-jade-2 group-hover:underline">
+        Open chart <ArrowRight size={12} />
+      </div>
+    </button>
   );
 }
 
