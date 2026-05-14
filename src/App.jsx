@@ -10203,8 +10203,8 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             <RailSection
               id="medications"
               icon={<Pill size={13} className="text-jade-2" />}
-              title="Review medication plan"
-              count={isSokha ? "3 for review" : null}
+              title="Medications"
+              count={isSokha ? "3 suggested" : null}
               open={openRailSection === "medications"}
               onToggle={() => toggleRail("medications")}
             >
@@ -10214,8 +10214,8 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             <RailSection
               id="diagnoses"
               icon={<ClipboardList size={13} className="text-plum" />}
-              title="Review diagnoses"
-              count={isSokha ? "4 for review" : null}
+              title="Diagnoses"
+              count={isSokha ? "1 active · 3 suggested" : null}
               open={openRailSection === "diagnoses"}
               onToggle={() => toggleRail("diagnoses")}
             >
@@ -10676,6 +10676,7 @@ function MedicationsCard({ isSokha }) {
   // the pencil editor can edit each piece independently.
   const [active, setActive] = useState([]);
   const [editingDrug, setEditingDrug] = useState(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const remaining = aiCandidates.filter(c => !active.some(a => a.drug === c.drug));
 
   const addMed = (c) => {
@@ -10726,7 +10727,7 @@ function MedicationsCard({ isSokha }) {
                     </div>
                     <div className="text-[10.5px] text-ink-3 truncate">{m.class}</div>
                   </div>
-                  <span className="text-[9px] uppercase tracking-wider font-semibold text-jade bg-jade-soft px-1.5 py-0.5 rounded shrink-0">
+                  <span className="text-[9px] uppercase tracking-wider font-semibold text-ink-2 bg-line-2 px-1.5 py-0.5 rounded shrink-0">
                     Active
                   </span>
                   <button
@@ -10758,38 +10759,37 @@ function MedicationsCard({ isSokha }) {
       ) : (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
           {remaining.length > 0
-            ? "Medication list not confirmed in Kura. Suggested from chart data below."
-            : "No medications recorded in Kura."}
+            ? "Medication list not confirmed"
+            : "No medications recorded."}
         </div>
       )}
 
-      {/* AI suggestions — framed as clinician review, not auto-add */}
+      {/* Suggestions summary — names only, single CTA opens full review modal.
+          Per-suggestion rationale + Review button live in the modal so the
+          rail doesn't carry N clinical decisions at once. */}
       {remaining.length > 0 && (
-        <div className="px-3 pb-3 pt-2 border-t border-line-2 bg-surface-2">
-          <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-1.5">
-            <Sparkles size={10} /> For review
+        <div className="px-3 pb-3 pt-2.5 border-t border-line-2 bg-surface-2/40">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold">
+              <Sparkles size={10} /> Suggested medications
+            </div>
+            <span className="text-[10px] text-ink-3 font-mono">{remaining.length}</span>
           </div>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1 mb-2.5">
             {remaining.map(c => (
-              <li key={c.drug} className="rounded-md border border-line bg-surface px-2.5 py-2">
-                <div className="mb-1">
-                  <div className="text-[12px] font-medium text-ink leading-tight">
-                    {c.drug} <span className="font-mono text-[10.5px] text-ink-3 ml-0.5">{c.dose}</span>
-                  </div>
-                  <div className="text-[10px] text-ink-3">{c.class}</div>
-                </div>
-                <div className="text-[10.5px] text-ink-3 font-mono mb-0.5">Reason: {c.trigger}</div>
-                <div className="text-[10.5px] text-ink-2 leading-snug mb-2">{c.rationale}</div>
-                <button
-                  onClick={() => addMed(c)}
-                  className="w-full text-[11px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition"
-                  title={`Open suggestion for ${c.drug}`}
-                >
-                  Review suggestion
-                </button>
+              <li key={c.drug} className="text-[11.5px] text-ink-2 leading-snug px-1.5 py-1 rounded hover:bg-surface-2/60 transition">
+                <span className="font-medium text-ink">{c.drug}</span>
+                <span className="font-mono text-[10.5px] text-ink-3 ml-1">{c.dose}</span>
+                <div className="text-[10px] text-ink-3 font-mono mt-0.5">{c.trigger}</div>
               </li>
             ))}
           </ul>
+          <button
+            onClick={() => setReviewOpen(true)}
+            className="w-full text-[11.5px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition inline-flex items-center justify-center gap-1.5"
+          >
+            Review medications <ChevronRight size={11} />
+          </button>
         </div>
       )}
 
@@ -10811,14 +10811,67 @@ function MedicationsCard({ isSokha }) {
             </div>
             <ExternalLink size={13} className="text-ink-3 group-hover:text-ink shrink-0" />
           </button>
-          <div className="text-right mt-1.5">
-            <button onClick={() => { setActive([]); setEditingDrug(null); }} className="text-[10px] text-ink-3 hover:text-ink underline-offset-2 hover:underline">
-              demo: reset
-            </button>
-          </div>
         </div>
       )}
+
+      {reviewOpen && (
+        <MedicationsReviewModal
+          candidates={remaining}
+          onClose={() => setReviewOpen(false)}
+          onAccept={(c) => addMed(c)}
+        />
+      )}
     </div>
+  );
+}
+
+function MedicationsReviewModal({ candidates, onClose, onAccept }) {
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-bg border border-line rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="px-5 py-4 border-b border-line-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-md bg-terracotta-soft text-terracotta flex items-center justify-center shrink-0"><Pill size={14} /></div>
+            <div className="min-w-0">
+              <h3 className="font-display text-[16px] font-medium leading-tight">Review medications</h3>
+              <div className="text-[11px] text-ink-3 leading-tight mt-0.5">Suggestions based on recent results and chart context. Nothing is added until you confirm.</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-ink-3 hover:text-ink p-1 -m-1 shrink-0"><X size={16} /></button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3">
+          {candidates.length === 0 ? (
+            <div className="text-[12.5px] text-ink-3 italic">No suggestions remaining.</div>
+          ) : candidates.map(c => (
+            <div key={c.drug} className="rounded-lg border border-line bg-surface px-3.5 py-3">
+              <div className="flex items-baseline justify-between gap-3 mb-1">
+                <div className="text-[13.5px] font-medium text-ink">
+                  {c.drug} <span className="font-mono text-[11px] text-ink-3 ml-0.5">{c.dose}</span>
+                </div>
+                <div className="text-[10.5px] text-ink-3 shrink-0">{c.class}</div>
+              </div>
+              <div className="text-[11px] text-ink-3 font-mono mb-1">Trigger: {c.trigger}</div>
+              <div className="text-[12px] text-ink-2 leading-relaxed mb-3">{c.rationale}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onAccept(c)}
+                  className="text-[12px] font-medium bg-jade text-white px-3 py-1.5 rounded-md hover:opacity-90 inline-flex items-center gap-1.5"
+                >
+                  <CheckCircle2 size={12} /> Accept and prescribe
+                </button>
+                <button className="text-[12px] text-ink-3 hover:text-ink hover:underline px-1">
+                  Not now
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-3 border-t border-line-2 bg-surface-2/30 text-[11px] text-ink-3 leading-snug">
+          Suggestions are advisory. Confirm contraindications, allergies, and renal function before prescribing.
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -12231,15 +12284,20 @@ function DocumentsCard({ isSokha }) {
 function DiagnosesCard({ isSokha }) {
   // AI-derived candidate codes — what the rules engine would propose for this
   // patient based on their labs and vitals. For non-Sokha patients we show
-  // nothing (real-world default).
+  // nothing (real-world default). The first item starts confirmed for Sokha
+  // since T2DM is on her chart already.
   const aiCandidates = useMemo(() => isSokha ? [
-    { code: "E11.65", label: "Type 2 diabetes mellitus with hyperglycemia", trigger: "HbA1c 9.4% · trending up", confidence: "high" },
     { code: "I10",    label: "Essential (primary) hypertension",            trigger: "BP 146/92 · 3 visits",     confidence: "high" },
     { code: "E78.5",  label: "Hyperlipidemia, unspecified",                  trigger: "LDL 162 mg/dL",            confidence: "high" },
     { code: "N18.3",  label: "Chronic kidney disease, stage 3",              trigger: "Microalbumin 34 · eGFR borderline", confidence: "low" },
   ] : [], [isSokha]);
 
-  const [active, setActive] = useState([]); // codes the doctor has added
+  // Seed with confirmed T2DM for Sokha so the "1 active" surface has truth in it.
+  const [active, setActive] = useState(() => isSokha ? [
+    { code: "E11.65", label: "Type 2 diabetes mellitus with hyperglycemia", status: "active" },
+  ] : []);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
   const remaining = aiCandidates.filter(c => !active.some(a => a.code === c.code));
 
   const addCode = (c) => setActive(prev => [...prev, { ...c, status: "active" }]);
@@ -12258,15 +12316,16 @@ function DiagnosesCard({ isSokha }) {
         </button>
       </div>
 
-      {/* Active codes */}
+      {/* Active codes — neutral "Active" pill (no crimson; red is reserved
+          for risk + abnormal values). */}
       {active.length > 0 ? (
         <ul className="divide-y divide-line-2">
           {active.map(p => (
             <li key={p.code} className="px-3 py-2 flex items-center gap-2 hover:bg-surface-2/30 group">
               <span className="font-mono text-[10px] text-plum bg-line-2 px-1.5 py-0.5 rounded shrink-0">{p.code}</span>
               <span className="flex-1 text-[11.5px] text-ink-2 truncate" title={p.label}>{p.label}</span>
-              <span className="text-[9px] uppercase tracking-wider font-semibold text-crimson bg-crimson-soft px-1.5 py-0.5 rounded shrink-0">
-                {p.status}
+              <span className="text-[9px] uppercase tracking-wider font-semibold text-ink-2 bg-line-2 px-1.5 py-0.5 rounded shrink-0">
+                Active
               </span>
               <button
                 onClick={() => removeCode(p.code)}
@@ -12281,48 +12340,96 @@ function DiagnosesCard({ isSokha }) {
       ) : (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
           {remaining.length > 0
-            ? "Diagnoses not yet confirmed in Kura. Suggested from chart data below."
+            ? "No active diagnoses confirmed"
             : "No diagnoses on file."}
         </div>
       )}
 
-      {/* Suggested from results — framed as clinician review, not auto-add */}
+      {/* Suggestions summary — code + label only, single CTA opens full
+          review modal. Per-suggestion reasoning lives in the modal. */}
       {remaining.length > 0 && (
-        <div className="px-3 pb-3 pt-2 border-t border-line-2 bg-surface-2">
-          <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-1.5">
-            <Sparkles size={10} /> Suggested from results
+        <div className="px-3 pb-3 pt-2.5 border-t border-line-2 bg-surface-2/40">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold">
+              <Sparkles size={10} /> Suggested diagnoses
+            </div>
+            <span className="text-[10px] text-ink-3 font-mono">{remaining.length}</span>
           </div>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1 mb-2.5">
             {remaining.map(c => (
-              <li key={c.code} className="rounded-md border border-line bg-surface px-2.5 py-2">
-                <div className="flex items-start gap-2 mb-1">
-                  <span className="font-mono text-[10px] text-plum bg-line-2 px-1.5 py-0.5 rounded shrink-0 mt-0.5">{c.code}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11.5px] text-ink leading-tight">{c.label}</div>
-                    <div className="text-[10px] text-ink-3 mt-0.5">Reason: {c.trigger}</div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => addCode(c)}
-                  className="w-full text-[11px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition"
-                  title={`Open review for ${c.label}`}
-                >
-                  Review diagnosis
-                </button>
+              <li key={c.code} className="flex items-center gap-1.5 px-1.5 py-1 text-[11.5px] rounded hover:bg-surface-2/60 transition">
+                <span className="font-mono text-[10px] text-plum bg-line-2 px-1.5 py-0.5 rounded shrink-0">{c.code}</span>
+                <span className="text-ink-2 truncate">{c.label}</span>
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {active.length > 0 && (
-        <div className="px-3 py-2 border-t border-line-2 text-right">
-          <button onClick={() => setActive([])} className="text-[10px] text-ink-3 hover:text-ink underline-offset-2 hover:underline">
-            demo: reset
+          <button
+            onClick={() => setReviewOpen(true)}
+            className="w-full text-[11.5px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition inline-flex items-center justify-center gap-1.5"
+          >
+            Review diagnoses <ChevronRight size={11} />
           </button>
         </div>
       )}
+
+      {reviewOpen && (
+        <DiagnosesReviewModal
+          candidates={remaining}
+          onClose={() => setReviewOpen(false)}
+          onAccept={(c) => addCode(c)}
+        />
+      )}
     </div>
+  );
+}
+
+function DiagnosesReviewModal({ candidates, onClose, onAccept }) {
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-bg border border-line rounded-xl shadow-xl w-full max-w-[560px] max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="px-5 py-4 border-b border-line-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-md bg-plum/10 text-plum flex items-center justify-center shrink-0"><ClipboardList size={14} /></div>
+            <div className="min-w-0">
+              <h3 className="font-display text-[16px] font-medium leading-tight">Review diagnoses</h3>
+              <div className="text-[11px] text-ink-3 leading-tight mt-0.5">Suggestions based on recent results and chart context. Nothing is added until you confirm.</div>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-ink-3 hover:text-ink p-1 -m-1 shrink-0"><X size={16} /></button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3">
+          {candidates.length === 0 ? (
+            <div className="text-[12.5px] text-ink-3 italic">No suggestions remaining.</div>
+          ) : candidates.map(c => (
+            <div key={c.code} className="rounded-lg border border-line bg-surface px-3.5 py-3">
+              <div className="flex items-baseline justify-between gap-3 mb-1">
+                <div className="text-[13.5px] font-medium text-ink leading-tight">
+                  <span className="font-mono text-[11px] text-plum bg-line-2 px-1.5 py-0.5 rounded mr-1.5 align-middle">{c.code}</span>
+                  {c.label}
+                </div>
+                <div className="text-[10.5px] text-ink-3 shrink-0 capitalize">{c.confidence} confidence</div>
+              </div>
+              <div className="text-[11.5px] text-ink-3 font-mono mb-3">Trigger: {c.trigger}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onAccept(c)}
+                  className="text-[12px] font-medium bg-jade text-white px-3 py-1.5 rounded-md hover:opacity-90 inline-flex items-center gap-1.5"
+                >
+                  <CheckCircle2 size={12} /> Confirm diagnosis
+                </button>
+                <button className="text-[12px] text-ink-3 hover:text-ink hover:underline px-1">
+                  Not now
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-3 border-t border-line-2 bg-surface-2/30 text-[11px] text-ink-3 leading-snug">
+          Suggestions are advisory. Confirm clinical history and rule-out alternatives before coding.
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
