@@ -10029,13 +10029,9 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
                 {patient.name}
               </h1>
               {problems[0] && (
-                <span className={`inline-flex items-center gap-1.5 uppercase tracking-[0.1em] font-semibold rounded-full transition-[padding,font-size] duration-200 ease-out ${
-                  headerCompact ? "text-[9.5px] px-1.5 py-0.5" : "text-[11px] px-2.5 py-1"
-                } ${
-                  problems[0].status === "active"  ? "bg-crimson-soft text-crimson" :
-                  problems[0].status === "managed" ? "bg-jade-soft text-jade" :
-                                                     "bg-line-2 text-ink-2"
-                }`}>
+                <span className={`inline-flex items-center gap-1.5 font-medium rounded-full transition-[padding,font-size] duration-200 ease-out ${
+                  headerCompact ? "text-[10px] px-1.5 py-0.5" : "text-[11px] px-2.5 py-1"
+                } bg-line-2 text-ink-2`}>
                   <Activity size={headerCompact ? 9 : 11} /> {problems[0].label.split(" with")[0]}
                 </span>
               )}
@@ -10068,20 +10064,24 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             <span className="text-ink-2 truncate">{patient.summary} <span className="text-jade-2 font-semibold">Next:</span> <span className="text-ink-2">{patient.nextStep}</span></span>
           </div>
         ) : (
-          <div className="mt-4 pt-4 border-t border-line-2 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-md bg-jade text-white flex items-center justify-center shrink-0">
-              <Sparkles size={13} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-jade font-semibold">AI recap</span>
-                <span className="text-[10px] text-ink-3">· longitudinal summary, refreshed daily</span>
+          <div className="mt-4 pt-4 border-t border-line-2">
+            <div className="rounded-lg bg-jade-soft/40 border border-jade-soft p-4 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-md bg-jade text-white flex items-center justify-center shrink-0">
+                <Sparkles size={15} />
               </div>
-              <p className="text-[12.5px] text-ink leading-relaxed">
-                {patient.summary}
-                <span className="text-jade-2 font-semibold"> Next step:</span>
-                <span className="text-ink-2"> {patient.nextStep}</span>
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10.5px] uppercase tracking-[0.16em] text-jade font-semibold">Needs review</span>
+                  <span className="text-[10px] text-ink-3">· AI recap refreshed daily</span>
+                </div>
+                <p className="text-[13px] text-ink leading-relaxed">
+                  {patient.summary}
+                </p>
+                <div className="mt-2.5 pt-2.5 border-t border-jade-soft/80">
+                  <div className="text-[10.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1">Suggested next step</div>
+                  <p className="text-[13px] text-ink font-medium leading-snug">{patient.nextStep}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -10273,13 +10273,13 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
       <div className="flex items-center justify-between px-4 py-3 border-b border-line-2">
         <div className="flex items-center gap-2">
           <FlaskConical size={13} className="text-jade-2" />
-          <h3 className="font-display text-[14px] font-medium">Bookings</h3>
+          <h3 className="font-display text-[14px] font-medium">Recent orders</h3>
           <span className="text-[9.5px] uppercase tracking-wider text-ink-3 font-mono bg-line-2 px-1.5 py-0.5 rounded">{bookings.length}</span>
         </div>
       </div>
       {bookings.length === 0 ? (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
-          No bookings yet — order labs from the action ribbon above or use the Quick order panel on the right.
+          No orders yet — use the Quick order panel above.
         </div>
       ) : (
         <ul className="divide-y divide-line-2">
@@ -10615,35 +10615,33 @@ function MedicationsCard({ isSokha }) {
         </ul>
       ) : (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
-          No medications on file{remaining.length > 0 ? " — pick from the AI suggestions below." : "."}
+          No medications recorded in Kura.
         </div>
       )}
 
-      {/* AI suggestions */}
+      {/* AI suggestions — framed as clinician review, not auto-add */}
       {remaining.length > 0 && (
         <div className="px-3 pb-3 pt-2 border-t border-line-2 bg-surface-2">
           <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-1.5">
-            <Sparkles size={10} /> AI suggestions
+            <Sparkles size={10} /> For review
           </div>
           <ul className="space-y-1.5">
             {remaining.map(c => (
-              <li key={c.drug}>
+              <li key={c.drug} className="rounded-md border border-line bg-surface px-2.5 py-2">
+                <div className="mb-1">
+                  <div className="text-[12px] font-medium text-ink leading-tight">
+                    {c.drug} <span className="font-mono text-[10.5px] text-ink-3 ml-0.5">{c.dose}</span>
+                  </div>
+                  <div className="text-[10px] text-ink-3">{c.class}</div>
+                </div>
+                <div className="text-[10.5px] text-ink-3 font-mono mb-0.5">Reason: {c.trigger}</div>
+                <div className="text-[10.5px] text-ink-2 leading-snug mb-2">{c.rationale}</div>
                 <button
                   onClick={() => addMed(c)}
-                  className="w-full text-left rounded-md border border-line hover:border-jade-2 hover:bg-jade-soft/30 px-2.5 py-2 transition group"
-                  title={`Suggested · ${c.trigger}`}
+                  className="w-full text-[11px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition"
+                  title={`Open suggestion for ${c.drug}`}
                 >
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[12px] font-medium text-ink truncate">
-                        {c.drug} <span className="font-mono text-[10.5px] text-ink-3 ml-0.5">{c.dose}</span>
-                      </div>
-                      <div className="text-[10px] text-ink-3 truncate">{c.class}</div>
-                    </div>
-                    <Plus size={12} className="text-jade-2 shrink-0" />
-                  </div>
-                  <div className="text-[10.5px] text-ink-3 font-mono mb-0.5">{c.trigger}</div>
-                  <div className="text-[10.5px] text-ink-2 leading-snug">{c.rationale}</div>
+                  Review suggestion
                 </button>
               </li>
             ))}
@@ -11824,7 +11822,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
               onClick={() => setPhase("route")}
               className={`w-full text-[12px] py-2 rounded-md font-medium inline-flex items-center justify-center gap-1.5 transition ${items.length === 0 ? "bg-line text-ink-3 cursor-not-allowed" : "bg-jade text-white hover:opacity-90"}`}
             >
-              Where to draw? <ArrowRight size={12} />
+              {items.length === 0 ? "Select tests to continue" : <>Choose collection point <ArrowRight size={12} /></>}
             </button>
           </>
         ) : (
