@@ -5715,19 +5715,22 @@ const LAB_CATALOG = [
     indications: ["HCC surveillance (q6mo)", "Cirrhosis follow-up"] },
 ];
 
+// `primary` controls which chips appear in the always-visible filter row.
+// Secondary categories collapse under a "More" toggle so the chip row doesn't
+// dominate the page on first view (Miller's Law — 7±2).
 const LAB_CATEGORIES = [
-  { id: "all",         label: "All tests" },
-  { id: "Diabetes",    label: "Diabetes" },
-  { id: "Lipids",      label: "Lipids" },
-  { id: "Renal",       label: "Renal" },
-  { id: "Liver",       label: "Liver" },
-  { id: "Thyroid",     label: "Thyroid" },
-  { id: "Hematology",  label: "Hematology" },
-  { id: "Cardiac",     label: "Cardiac" },
-  { id: "Infectious",  label: "Infectious" },
-  { id: "Vitamins",    label: "Vitamins" },
-  { id: "Hormones",    label: "Hormones" },
-  { id: "Tumor markers", label: "Tumor markers" },
+  { id: "all",         label: "All tests",   primary: true },
+  { id: "Diabetes",    label: "Diabetes",    primary: true },
+  { id: "Lipids",      label: "Lipids",      primary: true },
+  { id: "Renal",       label: "Renal",       primary: true },
+  { id: "Liver",       label: "Liver",       primary: true },
+  { id: "Hematology",  label: "Hematology",  primary: true },
+  { id: "Cardiac",     label: "Cardiac",     primary: true },
+  { id: "Thyroid",     label: "Thyroid",     primary: false },
+  { id: "Infectious",  label: "Infectious",  primary: false },
+  { id: "Vitamins",    label: "Vitamins",    primary: false },
+  { id: "Hormones",    label: "Hormones",    primary: false },
+  { id: "Tumor markers", label: "Tumor markers", primary: false },
 ];
 
 function LabCatalogView({ onOpenPatientChart, onStartVerification }) {
@@ -5740,6 +5743,8 @@ function LabCatalogView({ onOpenPatientChart, onStartVerification }) {
   // bring the click-to-expand behaviour back.
   const [draft, setDraft] = useState([]); // codes added to draft
   const [suggestOpen, setSuggestOpen] = useState(false);
+  // Secondary category chips collapse under a "More" toggle by default.
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   // Doctor's personal test library. Authored here (catalog rows = the source
   // of truth for tests), surfaced inside QuickOrderPanel on each patient chart.
@@ -5783,109 +5788,130 @@ function LabCatalogView({ onOpenPatientChart, onStartVerification }) {
 
   const cartOpen = draft.length > 0;
 
+  const hasSaved = favorites.length > 0 || bundles.length > 0;
+
   return (
     <div className="px-8 py-6 max-w-[1400px] mx-auto">
-      <div className="mb-1 text-[11px] uppercase tracking-[0.18em] text-ink-3">Lab catalog</div>
-      <h1 className="font-display text-[30px] font-medium leading-none mb-1">
-        Every test Kura runs — <span className="text-jade-2">{LAB_CATALOG.length}+ assays</span>
-      </h1>
+      <h1 className="font-display text-[28px] font-medium leading-none mb-1">Lab tests</h1>
       <p className="text-[12.5px] text-ink-3 mb-5">
-        Browse the full catalog. Click a row for prep, indications, and reference ranges. Reference ranges follow your <span className="font-mono">{system === "us" ? "US" : "SI"}</span> preference.
+        Find tests, check prep, and add them to an order. Reference ranges follow your <span className="font-mono">{system === "us" ? "US" : "SI"}</span> preference.
       </p>
-
-      {/* Doctor's personal test library — favorites + bundles. Lives at the
-          top of the catalog so the doctor curates it where the tests are. */}
-      <div className="grid grid-cols-12 gap-4 mb-5">
-        <div data-tour="catalog-favorites" className="col-span-5">
-          <FavoritesCard
-            favorites={favorites}
-            onRemove={toggleFavorite}
-            onAdd={() => setPicker({ mode: "favorite" })}
-          />
-        </div>
-        <div data-tour="catalog-bundles" className="col-span-7">
-          <BundlesCard
-            bundles={bundles}
-            onEdit={(b) => setPicker({ mode: "bundle", bundle: b })}
-            onDelete={deleteBundle}
-            onNew={() => setPicker({ mode: "bundle" })}
-          />
-        </div>
-      </div>
 
       <div className="grid grid-cols-12 gap-5">
       <div className={`transition-all ${cartOpen ? "col-span-8" : "col-span-12"}`}>
 
-      {/* Search */}
+      {/* Search hero — moved to the top so it's the first thing the doctor
+          interacts with. Catalog management (favorites + bundles) used to
+          dominate this slot when empty; that hierarchy was wrong. */}
       <div data-tour="catalog-search" className="bg-surface border border-line rounded-xl p-4 mb-3">
         <div className="relative mb-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search by name, code (e.g. HBA1C), or category…"
+            placeholder="Search by name or code"
             className="w-full bg-surface-2 border border-line-2 rounded-lg pl-9 pr-3 py-2 text-[13px] focus:outline-none focus:border-jade"
           />
         </div>
 
-        {/* Category chips */}
+        {/* Category chips — primary categories always visible, the rest
+            collapse behind a "More" toggle. Keeps the chip row scannable. */}
         <div className="flex flex-wrap gap-1.5">
-          {LAB_CATEGORIES.map(c => {
-            const isActive = category === c.id;
-            const count = c.id === "all" ? LAB_CATALOG.length : (counts[c.id] || 0);
-            const chip = (
-              <button
-                key={c.id}
-                onClick={() => setCategory(c.id)}
-                className={`text-[11.5px] px-2.5 py-1 rounded-full border transition inline-flex items-center gap-1.5 ${
-                  isActive ? "bg-jade text-white border-ink" : "bg-surface text-ink-2 border-line hover:border-ink"
-                }`}
-              >
-                {c.label}
-                <span className={`text-[10px] font-mono ${isActive ? "text-white/70" : "text-ink-3"}`}>{count}</span>
-              </button>
-            );
-            if (c.id === "all") {
-              const favActive = category === "favorites";
+          {(() => {
+            const primaries = LAB_CATEGORIES.filter(c => c.primary);
+            const secondaries = LAB_CATEGORIES.filter(c => !c.primary);
+            const visible = showAllCategories ? LAB_CATEGORIES : primaries;
+            const renderChip = (c) => {
+              const isActive = category === c.id;
+              const count = c.id === "all" ? LAB_CATALOG.length : (counts[c.id] || 0);
               return (
-                <React.Fragment key="all-and-favorites">
-                  {chip}
-                  <button
-                    onClick={() => setCategory("favorites")}
-                    className={`text-[11.5px] px-2.5 py-1 rounded-full border transition inline-flex items-center gap-1.5 ${
-                      favActive ? "bg-jade text-white border-ink" : "bg-surface text-ink-2 border-line hover:border-ink"
-                    }`}
-                  >
-                    <Star size={11} className={favActive ? "text-amber" : "text-amber"} style={favorites.length > 0 ? { fill: "currentColor" } : undefined} />
-                    Favorites
-                    <span className={`text-[10px] font-mono ${favActive ? "text-white/70" : "text-ink-3"}`}>{favorites.length}</span>
-                  </button>
-                </React.Fragment>
+                <button
+                  key={c.id}
+                  onClick={() => setCategory(c.id)}
+                  className={`text-[11.5px] px-2.5 py-1 rounded-full border transition inline-flex items-center gap-1.5 ${
+                    isActive ? "bg-jade text-white border-ink" : "bg-surface text-ink-2 border-line hover:border-ink"
+                  }`}
+                >
+                  {c.label}
+                  <span className={`text-[10px] font-mono ${isActive ? "text-white/70" : "text-ink-3"}`}>{count}</span>
+                </button>
               );
-            }
-            return chip;
-          })}
+            };
+            const favActive = category === "favorites";
+            return (
+              <>
+                {visible.map((c, i) => (
+                  <React.Fragment key={c.id}>
+                    {renderChip(c)}
+                    {c.id === "all" && (
+                      <button
+                        onClick={() => setCategory("favorites")}
+                        className={`text-[11.5px] px-2.5 py-1 rounded-full border transition inline-flex items-center gap-1.5 ${
+                          favActive ? "bg-jade text-white border-ink" : "bg-surface text-ink-2 border-line hover:border-ink"
+                        }`}
+                      >
+                        <Star size={11} className="text-amber" style={favorites.length > 0 ? { fill: "currentColor" } : undefined} />
+                        Favorites
+                        <span className={`text-[10px] font-mono ${favActive ? "text-white/70" : "text-ink-3"}`}>{favorites.length}</span>
+                      </button>
+                    )}
+                  </React.Fragment>
+                ))}
+                {secondaries.length > 0 && (
+                  <button
+                    onClick={() => setShowAllCategories(v => !v)}
+                    className="text-[11.5px] px-2.5 py-1 rounded-full border border-line text-ink-3 hover:text-ink hover:border-ink transition inline-flex items-center gap-1"
+                  >
+                    {showAllCategories ? "Less" : `More`}
+                    <ChevronDown size={11} className={`transition ${showAllCategories ? "rotate-180" : ""}`} />
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
+
+      {/* Saved tests — only renders when there's something to show. When
+          empty (default), favorites + bundles disappear from the page so
+          they don't crowd out the catalog. Authoring still happens through
+          the row star button + bundle picker. */}
+      {hasSaved && (
+        <div className="grid grid-cols-12 gap-4 mb-3">
+          <div data-tour="catalog-favorites" className="col-span-5">
+            <FavoritesCard
+              favorites={favorites}
+              onRemove={toggleFavorite}
+              onAdd={() => setPicker({ mode: "favorite" })}
+            />
+          </div>
+          <div data-tour="catalog-bundles" className="col-span-7">
+            <BundlesCard
+              bundles={bundles}
+              onEdit={(b) => setPicker({ mode: "bundle", bundle: b })}
+              onDelete={deleteBundle}
+              onNew={() => setPicker({ mode: "bundle" })}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       <div className="bg-surface border border-line rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-line-2 bg-surface-2/40 text-[11px] text-ink-3">
           <span>{filtered.length} test{filtered.length === 1 ? "" : "s"}{category !== "all" && ` in ${category}`}{q && ` matching "${query}"`}</span>
-          <span className="inline-flex items-center gap-1"><Sparkles size={10} className="text-jade-2" /> Prices in USD · paid in KHR or via insurer</span>
+          <span>Prices shown in USD</span>
         </div>
 
         {filtered.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <div className="text-[13px] text-ink-2 mb-1">No tests match{query ? ` "${query}"` : ""}.</div>
             <div className="text-[11.5px] text-ink-3 mb-4">Try a broader search or clear the category filter.</div>
-            <div className="hairline max-w-[260px] mx-auto mb-4" />
-            <div className="text-[11.5px] text-ink-3 mb-2">Don't see what you need?</div>
             <button
               onClick={() => setSuggestOpen(true)}
               className="inline-flex items-center gap-1.5 text-[12px] bg-jade text-white px-3 py-1.5 rounded-md font-medium hover:opacity-90"
             >
-              <Plus size={12} /> Suggest a missing test
+              <Plus size={12} /> Request test
             </button>
           </div>
         ) : (
@@ -5930,14 +5956,14 @@ function LabCatalogView({ onOpenPatientChart, onStartVerification }) {
                   </button>
                   <button
                     onClick={() => toggleDraft(t.code)}
-                    title={inDraft(t.code) ? "Remove from cart" : "Add to cart"}
-                    className={`shrink-0 w-7 h-7 rounded-md inline-flex items-center justify-center transition border ${
+                    title={inDraft(t.code) ? "Remove from order" : "Add to order"}
+                    className={`shrink-0 h-7 px-2.5 rounded-md inline-flex items-center justify-center gap-1 text-[11.5px] font-medium transition border ${
                       inDraft(t.code)
                         ? "bg-crimson-soft border-crimson text-crimson hover:bg-crimson hover:text-white"
                         : "bg-surface border-line text-ink-2 hover:border-ink hover:text-ink"
                     }`}
                   >
-                    {inDraft(t.code) ? <Trash2 size={13} /> : <Plus size={13} />}
+                    {inDraft(t.code) ? <><Trash2 size={11} /> Remove</> : <><Plus size={11} /> Add</>}
                   </button>
                 </div>
               </li>
@@ -5946,21 +5972,15 @@ function LabCatalogView({ onOpenPatientChart, onStartVerification }) {
         )}
       </div>
 
-      {/* Persistent footer — doctors can always submit a request for a test we don't run yet */}
+      {/* Footer — quiet request prompt for missing assays */}
       {filtered.length > 0 && (
-        <div className="mt-3 bg-surface border border-dashed border-line rounded-xl px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-md bg-jade-soft text-jade flex items-center justify-center shrink-0">
-            <Sparkles size={14} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[12.5px] text-ink-2 font-medium">Test you need isn't here?</div>
-            <div className="text-[11px] text-ink-3 leading-snug">Submit a request — our lab ops team works on adding new assays from doctor demand.</div>
-          </div>
+        <div className="mt-3 px-4 py-3 flex items-center justify-between gap-3 text-[11.5px]">
+          <div className="text-ink-3">Missing a test? <span className="text-ink-2">Request it from Kura.</span></div>
           <button
             onClick={() => setSuggestOpen(true)}
-            className="text-[11.5px] bg-jade text-white px-3 py-1.5 rounded-md font-medium hover:opacity-90 inline-flex items-center gap-1.5 shrink-0"
+            className="text-[11.5px] text-jade-2 hover:text-jade hover:underline font-medium inline-flex items-center gap-1 shrink-0"
           >
-            <Plus size={11} /> Suggest a test
+            Request test <ChevronRight size={11} />
           </button>
         </div>
       )}
