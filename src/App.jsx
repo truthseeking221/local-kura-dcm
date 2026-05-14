@@ -9915,6 +9915,11 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
   // stay always-visible.
   const [openRailSection, setOpenRailSection] = useState(null);
   const toggleRail = (id) => setOpenRailSection(prev => prev === id ? null : id);
+  // Parent rail groups — Review (clinical) / Other (admin) / More actions
+  // (routing). All collapsed by default; doctor opens one cluster at a time.
+  const [openReview, setOpenReview] = useState(false);
+  const [openOther, setOpenOther] = useState(false);
+  const [openMoreActions, setOpenMoreActions] = useState(false);
   // Just-placed booking from the Quick order panel — the new row + NEW badge
   // persist until reload, but the card-level jade glow is its own state that
   // auto-fades after the pulse so it doesn't sit there forever.
@@ -10230,113 +10235,161 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             />
           </div>
 
-          {/* Follow up — patient outreach prompt with clear CTA */}
-          {isSokha && (
-            <div className="rounded-xl border border-line bg-surface p-4">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-ink-3 font-semibold mb-1.5">
-                <Send size={11} /> Follow up
+          {/* Review group — clinical review items clustered under one parent.
+              When collapsed, doctor sees one summary row instead of three.
+              When open, the three nested sections share the single-open
+              accordion (openRailSection) so only one of them expands at a
+              time. Doctor scans the cluster, opens one. */}
+          <div data-tour="meds-card">
+            <RailGroup
+              icon={<Sparkles size={13} className="text-jade-2" />}
+              title="Review"
+              summary={isSokha ? "Meds · Diagnoses · Chart gaps" : "Chart gaps"}
+              count={isSokha ? "3 areas" : "1 area"}
+              open={openReview}
+              onToggle={() => setOpenReview(v => !v)}
+            >
+              <div className="space-y-2">
+                <RailSection
+                  id="medications"
+                  icon={<Pill size={13} className="text-jade-2" />}
+                  title="Medications"
+                  count={isSokha ? "3 suggested" : null}
+                  open={openRailSection === "medications"}
+                  onToggle={() => toggleRail("medications")}
+                >
+                  <MedicationsCard isSokha={isSokha} />
+                </RailSection>
+
+                <RailSection
+                  id="diagnoses"
+                  icon={<ClipboardList size={13} className="text-plum" />}
+                  title="Diagnoses"
+                  count={isSokha ? "1 active · 3 suggested" : null}
+                  open={openRailSection === "diagnoses"}
+                  onToggle={() => toggleRail("diagnoses")}
+                >
+                  <DiagnosesCard isSokha={isSokha} />
+                </RailSection>
+
+                <RailSection
+                  id="chart-gaps"
+                  icon={<AlertTriangle size={13} className="text-ink-3" />}
+                  title="Chart gaps"
+                  count="3 items"
+                  open={openRailSection === "chart-gaps"}
+                  onToggle={() => toggleRail("chart-gaps")}
+                >
+                  <div className="space-y-3">
+                    <AllergiesCard knownDefault={false} />
+                    <AlertsCard knownDefault={false} />
+                    <VaccinationsCard />
+                  </div>
+                </RailSection>
               </div>
-              <p className="text-[12px] text-ink-2 leading-relaxed mb-2.5">
-                HbA1c follow-up is due. Send Sokha a walk-in lab link.
-              </p>
-              <button className="w-full text-[11.5px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition">
-                Send link via Telegram
+            </RailGroup>
+          </div>
+
+          {/* Other — admin + documents. Lower visual weight than clinical
+              review because admin items rarely change what the doctor does
+              next during a chart review. */}
+          <RailGroup
+            icon={<FileText size={13} className="text-ink-3" />}
+            title="Other"
+            summary="Admin · Documents"
+            count={null}
+            open={openOther}
+            onToggle={() => setOpenOther(v => !v)}
+          >
+            <div className="space-y-2">
+              <RailSection
+                id="admin"
+                icon={<CreditCard size={13} className="text-ink-3" />}
+                title="Admin"
+                count="Insurance"
+                open={openRailSection === "admin"}
+                onToggle={() => toggleRail("admin")}
+              >
+                <InsuranceCard patient={patient} knownDefault={false} />
+              </RailSection>
+
+              <RailSection
+                id="documents"
+                icon={<FileText size={13} className="text-ink-3" />}
+                title="Documents"
+                count={null}
+                open={openRailSection === "documents"}
+                onToggle={() => toggleRail("documents")}
+              >
+                <DocumentsCard isSokha={isSokha} />
+              </RailSection>
+            </div>
+          </RailGroup>
+
+          {/* More actions — hospital refer + schedule. Collapsed by default
+              so the rail's primary clinical flow (Lab orders → Previous orders
+              → Review) isn't competing with routing actions. */}
+          <RailGroup
+            icon={<ChevronRight size={13} className="text-ink-3" />}
+            title="More actions"
+            summary="Hospital refer · Schedule"
+            count={null}
+            open={openMoreActions}
+            onToggle={() => setOpenMoreActions(v => !v)}
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowHospitalRefer(true)}
+                className="bg-surface border border-line rounded-xl p-3 flex items-center gap-2.5 hover:bg-surface-2/40 hover:border-line-2 transition text-left"
+              >
+                <Cross size={14} className="text-ink-2 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[12.5px] font-medium text-ink leading-tight">Hospital refer</div>
+                  <div className="text-[10px] text-ink-3 leading-tight truncate">Surgery · imaging</div>
+                </div>
+              </button>
+              <button
+                className="bg-surface border border-line rounded-xl p-3 flex items-center gap-2.5 hover:bg-surface-2/40 hover:border-line-2 transition text-left"
+              >
+                <Calendar size={14} className="text-ink-2 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[12.5px] font-medium text-ink leading-tight">Schedule</div>
+                  <div className="text-[10px] text-ink-3 leading-tight truncate">Cabinet · tele</div>
+                </div>
               </button>
             </div>
-          )}
-
-          {/* Single-open accordion for secondary clinical + admin surfaces.
-              Default all collapsed so the rail doesn't read like a wall of
-              decisions. Doctor opens what they need. */}
-          <div data-tour="meds-card" className="space-y-2">
-            <RailSection
-              id="medications"
-              icon={<Pill size={13} className="text-jade-2" />}
-              title="Medications"
-              count={isSokha ? "3 suggested" : null}
-              open={openRailSection === "medications"}
-              onToggle={() => toggleRail("medications")}
-            >
-              <MedicationsCard isSokha={isSokha} />
-            </RailSection>
-
-            <RailSection
-              id="diagnoses"
-              icon={<ClipboardList size={13} className="text-plum" />}
-              title="Diagnoses"
-              count={isSokha ? "1 active · 3 suggested" : null}
-              open={openRailSection === "diagnoses"}
-              onToggle={() => toggleRail("diagnoses")}
-            >
-              <DiagnosesCard isSokha={isSokha} />
-            </RailSection>
-
-            <RailSection
-              id="chart-gaps"
-              icon={<AlertTriangle size={13} className="text-ink-3" />}
-              title="Chart gaps"
-              count="3 items"
-              open={openRailSection === "chart-gaps"}
-              onToggle={() => toggleRail("chart-gaps")}
-            >
-              <div className="space-y-3">
-                <AllergiesCard knownDefault={false} />
-                <AlertsCard knownDefault={false} />
-                <VaccinationsCard />
-              </div>
-            </RailSection>
-
-            <RailSection
-              id="admin"
-              icon={<CreditCard size={13} className="text-ink-3" />}
-              title="Admin"
-              count="Insurance"
-              open={openRailSection === "admin"}
-              onToggle={() => toggleRail("admin")}
-            >
-              <InsuranceCard patient={patient} knownDefault={false} />
-            </RailSection>
-
-            <RailSection
-              id="documents"
-              icon={<FileText size={13} className="text-ink-3" />}
-              title="Documents"
-              count={null}
-              open={openRailSection === "documents"}
-              onToggle={() => toggleRail("documents")}
-            >
-              <DocumentsCard isSokha={isSokha} />
-            </RailSection>
-          </div>
-
-          {/* Secondary routing actions — hospital referral + scheduling. Two
-              side-by-side bento cards that mirror the action ribbon's button
-              shape (icon left, label + sub stacked right). Used less often
-              than the core ribbon primitives so they sit at the rail's bottom. */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setShowHospitalRefer(true)}
-              className="bg-surface border border-line rounded-xl p-3 flex items-center gap-2.5 hover:bg-surface-2/40 hover:border-line-2 transition text-left"
-            >
-              <Cross size={14} className="text-ink-2 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[12.5px] font-medium text-ink leading-tight">Hospital refer</div>
-                <div className="text-[10px] text-ink-3 leading-tight truncate">Surgery · imaging</div>
-              </div>
-            </button>
-            <button
-              className="bg-surface border border-line rounded-xl p-3 flex items-center gap-2.5 hover:bg-surface-2/40 hover:border-line-2 transition text-left"
-            >
-              <Calendar size={14} className="text-ink-2 shrink-0" />
-              <div className="min-w-0">
-                <div className="text-[12.5px] font-medium text-ink leading-tight">Schedule</div>
-                <div className="text-[10px] text-ink-3 leading-tight truncate">Cabinet · tele</div>
-              </div>
-            </button>
-          </div>
+          </RailGroup>
         </div>
       </div>
 
+    </div>
+  );
+}
+
+/* RailGroup — parent cluster that wraps several related RailSections under
+   one disclosure. Doctor sees a single summary row ("Review · 3 areas")
+   when collapsed; opens to reveal the nested sections. Keeps Hick's-law
+   pressure low on the default view. */
+function RailGroup({ icon, title, summary, count, open, onToggle, children }) {
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className={`w-full bg-surface border rounded-xl flex items-center gap-2 px-3.5 py-2.5 text-left transition ${open ? "border-line-2 bg-surface-2/40" : "border-line hover:border-ink-3 hover:bg-surface-2/30"}`}
+      >
+        <span className="shrink-0">{icon}</span>
+        <span className="flex-1 min-w-0">
+          <span className="text-[13px] font-medium text-ink truncate block">{title}</span>
+          {summary && !open && (
+            <span className="text-[10.5px] text-ink-3 leading-tight block mt-0.5 truncate">{summary}</span>
+          )}
+        </span>
+        {count && <span className="text-[10.5px] text-ink-3 font-mono shrink-0">{count}</span>}
+        <ChevronDown size={14} className={`text-ink-3 shrink-0 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div>{children}</div>}
     </div>
   );
 }
@@ -10624,7 +10677,11 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
             <div className="flex items-center gap-2 text-[12.5px] text-ink-2">
               <span className="font-medium">Previous orders</span>
               <span className="text-[10.5px] text-ink-3">
-                {history.length} {history.length === 1 ? "order" : "orders"}
+                {(() => {
+                  const resultsBack = history.filter(b => !cancelledIds.has(b.id) && b.status === "results-back").length;
+                  if (resultsBack > 0) return `${resultsBack} result${resultsBack === 1 ? "" : "s"} back`;
+                  return `${history.length} ${history.length === 1 ? "order" : "orders"}`;
+                })()}
               </span>
             </div>
             <ChevronDown size={13} className={`text-ink-3 transition ${showHistory ? "rotate-180" : ""}`} />
@@ -12119,6 +12176,17 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
 
       {phase === "cart" ? (
         <>
+          {/* Follow-up cue — surfaces the outreach reason inside the same
+              card the doctor uses to act on it. After the order is placed,
+              the placed-psc / placed-clinic states already carry the
+              "Send to ${patient}" confirmation, so the cue isn't a separate
+              card competing with Lab orders. */}
+          {isSokha && (
+            <div className="px-4 pt-3 pb-1 flex items-center gap-2 text-[11px] text-ink-3 leading-snug">
+              <Send size={11} className="text-jade-2 shrink-0" />
+              <span>HbA1c follow-up due — patient link sends when order is created.</span>
+            </div>
+          )}
           {/* AI suggestions take the hero spot — that's what the doctor is
               meant to scan first. Search is below as a quieter "find another
               test" secondary input. Catalog fallback (catalogMatches) kicks
