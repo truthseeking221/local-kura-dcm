@@ -24,8 +24,8 @@ import {
 export const TOURS = [
   {
     id: "catalog",
-    title: "Explore the lab catalog",
-    blurb: "210+ tests, panels, and reflex protocols — searchable, priced, suggestable.",
+    title: "Order a lab test",
+    blurb: "Find a test and add it to an order.",
     eta: "2 min",
     icon: TestTubes,
     steps: [
@@ -61,8 +61,8 @@ export const TOURS = [
   },
   {
     id: "patient-sokha",
-    title: "Meet Sokha — your demo patient",
-    blurb: "Walk through a real chart: vitals, lab trends, meds, and the quick-order rail.",
+    title: "Review a demo patient",
+    blurb: "Open Sokha's chart and check lab trends.",
     eta: "3 min",
     icon: UserRound,
     steps: [
@@ -105,8 +105,8 @@ export const TOURS = [
   },
   {
     id: "verify",
-    title: "Verify your licence",
-    blurb: "Unlock real patients, Dx prescriptions, and insurance billing.",
+    title: "Verify your license",
+    blurb: "Use Kura with real patients.",
     eta: "5 min",
     icon: ShieldCheck,
     action: "verify",
@@ -268,39 +268,36 @@ export function useOnboarding({ enabled = true, onNavigate, onAction } = {}) {
    OnboardingChoiceModal — kit Dialog with the 3 onboarding paths.
    ============================================================ */
 export function OnboardingChoiceModal({ onClose, onStart, onAction, completed, userFullName }) {
+  // Hide tours already completed — success belongs in progress UI, not choice modal
+  const activeTours = TOURS.filter((tour) => !completed.includes(tour.id));
+
+  // Nothing left to suggest — auto-dismiss
+  if (activeTours.length === 0) {
+    return null;
+  }
+
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-[520px] gap-0 p-0">
-        <DialogHeader className="px-7 pb-3 pt-8 text-center sm:text-center">
-          <span className="mx-auto mb-4 inline-flex">
-            <IconBadge tone="brand" size="lg">
-              <Sparkles size={22} strokeWidth={1.75} />
-            </IconBadge>
-          </span>
-          <DialogTitle className="text-[20px] font-semibold leading-snug">
-            Welcome to Kura{userFullName ? `, ${userFullName.split(" ")[0]}` : ""}
+      <DialogContent className="max-w-[480px] gap-0 p-0">
+        <DialogHeader className="px-7 pb-2 pt-7 text-center sm:text-center">
+          <DialogTitle className="text-[18px] font-semibold leading-snug">
+            Start with one task
           </DialogTitle>
-          <DialogDescription className="mt-1.5 px-2 text-k-body text-[var(--ink-600)]">
-            Pick where to start — you can always come back to the rest later.
+          <DialogDescription className="mt-1.5 text-k-body text-[var(--ink-600)]">
+            Choose a short walkthrough. You can skip this anytime.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-5 pb-5">
+        <div className="px-5 pb-5 pt-3">
           <div className="divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius)] border border-[var(--border)]">
-            <div className="bg-[var(--surface-2)] px-4 py-2.5">
-              <div className="text-k-overline uppercase tracking-k-caps text-[var(--ink-500)]">
-                You now have unlimited access to:
-              </div>
-            </div>
-            {TOURS.map((tour) => {
+            {activeTours.map((tour) => {
               const TourIcon = tour.icon;
-              const isDone = completed.includes(tour.id);
               return (
                 <button
                   key={tour.id}
                   type="button"
                   onClick={() => tour.action ? onAction?.(tour.action) : onStart(tour.id)}
-                  className="group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-[var(--surface-2)]"
+                  className="group flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-[var(--surface-2)]"
                 >
                   <IconBadge tone="brand" size="md">
                     <TourIcon size={18} />
@@ -309,22 +306,13 @@ export function OnboardingChoiceModal({ onClose, onStart, onAction, completed, u
                     <div className="text-k-body font-medium leading-snug text-[var(--ink-900)]">
                       {tour.title}
                     </div>
-                    <div className="mt-0.5 truncate text-k-sm leading-snug text-[var(--ink-600)]">
+                    <div className="mt-0.5 text-k-sm leading-snug text-[var(--ink-600)]">
                       {tour.blurb}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2.5">
-                    {isDone ? (
-                      <span className="inline-flex items-center gap-1 text-k-xs font-medium text-[var(--success-600)]">
-                        <CheckCircle2 size={13} /> Done
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-k-xs text-[var(--ink-500)]">
-                        <Clock size={11} /> {tour.eta}
-                      </span>
-                    )}
-                    <ChevronRight size={15} className="text-[var(--ink-500)] transition group-hover:text-[var(--ink-700)]" />
-                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-k-xs text-[var(--ink-500)]">
+                    <Clock size={11} /> {tour.eta}
+                  </span>
                 </button>
               );
             })}
@@ -333,9 +321,9 @@ export function OnboardingChoiceModal({ onClose, onStart, onAction, completed, u
           <Button
             variant="link"
             onClick={onClose}
-            className="mt-4 w-full"
+            className="mt-3 w-full"
           >
-            I'll explore on my own
+            Skip for now
           </Button>
         </div>
       </DialogContent>
