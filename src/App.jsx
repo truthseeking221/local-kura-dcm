@@ -12171,24 +12171,24 @@ function CashConfirmModal({ amount, patientName, onCancel, onConfirm }) {
         <div className="px-5 py-4 border-b border-line-2 bg-amber-soft/60 flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-full bg-amber text-white flex items-center justify-center"><Banknote size={16} /></div>
           <div>
-            <h3 className="font-display text-[15px] font-medium leading-tight">Did you collect the cash?</h3>
-            <div className="text-[10.5px] text-ink-3 uppercase tracking-[0.14em] font-semibold">Confirm before placing</div>
+            <h3 className="font-display text-[15px] font-medium leading-tight">Confirm cash payment</h3>
+            <div className="text-[10.5px] text-ink-3 uppercase tracking-[0.14em] font-semibold">Records to reconciliation log</div>
           </div>
         </div>
         <div className="px-5 py-4">
-          <p className="text-[12.5px] text-ink-2 leading-relaxed mb-3">
-            Confirm you have <span className="font-display text-[22px] text-ink font-medium tnum align-middle mx-0.5">${amount.toFixed(2)}</span> in cash from <span className="font-medium text-ink">{firstName}</span> in your hand right now.
+          <p className="text-[13px] text-ink-2 leading-relaxed mb-3">
+            Have you collected <span className="font-display text-[15px] text-ink font-medium tnum">${amount.toFixed(2)}</span> in cash from <span className="font-medium text-ink">{firstName}</span>?
           </p>
-          <div className="rounded-md border border-line-2 bg-surface-2/40 px-3 py-2 text-[10.5px] text-ink-3 leading-snug">
-            This goes into the reconciliation log. Click <span className="font-medium text-ink-2">No</span> if you haven't physically collected — you can still send to PSC without payment and have them collect there.
+          <div className="rounded-md border border-line-2 bg-surface-2/40 px-3 py-2 text-[11px] text-ink-3 leading-snug">
+            If not collected, the PSC can collect payment at sample collection.
           </div>
         </div>
         <div className="px-5 py-3 border-t border-line-2 bg-surface-2/30 grid grid-cols-2 gap-2">
           <button onClick={onCancel} className="text-[12.5px] py-2 rounded-md border border-line bg-surface text-ink-2 hover:border-ink font-medium">
-            No, not yet
+            Not collected
           </button>
           <button onClick={onConfirm} className="text-[12.5px] py-2 rounded-md bg-jade text-white hover:opacity-90 font-medium inline-flex items-center justify-center gap-1.5">
-            <CheckCircle2 size={12} /> Yes, I have ${amount.toFixed(2)}
+            <CheckCircle2 size={12} /> Mark ${amount.toFixed(2)} collected
           </button>
         </div>
       </div>
