@@ -1620,7 +1620,7 @@ export default function App() {
       <TopBar onOrderLabs={() => handleSetNav("orders-legacy")} />
 
       <div className="flex relative z-10" style={{ minHeight: "calc(100vh - 56px)" }}>
-        <SideNav nav={nav} setNav={handleSetNav} collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(c => !c)} auth={auth} />
+        <SideNav nav={nav} setNav={handleSetNav} collapsed={sidebarCollapsed} onToggleCollapsed={() => setSidebarCollapsed(c => !c)} auth={auth} onStartVerification={() => setShowEkyc(true)} />
 
         <main className="flex-1 min-w-0">
           <ExplorerBanner onStartVerification={() => setShowEkyc(true)} />
@@ -1810,27 +1810,18 @@ function TopBar({ onOrderLabs }) {
 }
 
 /* ---------- Side nav ---------- */
-function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth }) {
+function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth, onStartVerification }) {
   const isPierre = isPierreAccount(auth);
+  const [tier] = useDoctorTier();
+  const isExplorer = tier === "explorer";
+
+  // Single flat list of primary destinations only. Coming-soon items hidden
+  // until shipped — no lock icons on individual rows. Account-level surfaces
+  // (Refer, Billing, Directory, e-Signature) moved to UserMenuWidget.
   const items = [
-    { id: "patients",    label: "Patients",    icon: Users,           badge: isPierre ? "1.2k" : "1" },
-    { id: "orders",      label: "Bookings",    icon: Calendar,        badge: isPierre ? "12"   : "0" },
-    { id: "catalog",     label: "Lab catalog", icon: TestTubes,       badge: null },
-    { id: "inbox",       label: "Inbox",       icon: Inbox,           badge: "soon", comingSoon: true },
-    { id: "calendar",    label: "Calendar",    icon: Calendar,        badge: "soon", comingSoon: true },
-    { id: "tasks",       label: "Tasks",       icon: ListChecks,      badge: "soon", comingSoon: true },
-    { id: "telehealth",  label: "Telehealth",  icon: Video,           badge: "soon", comingSoon: true },
-    { id: "careplans",   label: "Care plans",  icon: ClipboardList,   badge: "soon", comingSoon: true },
-    { id: "dispensary",  label: "Dispensary",  icon: Pill,            badge: "soon", comingSoon: true },
-    { id: "supplies",    label: "Supplies",    icon: Package,         badge: "soon", comingSoon: true },
-    { id: "pharma",      label: "Pharma calls",icon: Building2,       badge: "soon", comingSoon: true },
-    { id: "performance", label: "Dashboard",   icon: LayoutDashboard, badge: "soon", comingSoon: true },
-    { id: "billing",     label: "Billing & Payments", icon: Banknote, badge: "soon", comingSoon: true },
-    { id: "referrals",   label: "Refer & earn",icon: Send,            badge: "+$50", lowTone: true },
-  ];
-  const cabinetItems = [
-    { id: "directory", label: "Directory profile", icon: Globe,       comingSoon: true },
-    { id: "signing",   label: "e-Signature",       icon: ShieldCheck, comingSoon: true },
+    { id: "patients", label: "Patients",  icon: Users,      badge: isPierre ? "1.2k" : null },
+    { id: "orders",   label: "Bookings",  icon: Calendar,   badge: isPierre ? "12"   : null },
+    { id: "catalog",  label: "Lab tests", icon: TestTubes,  badge: null },
   ];
 
   return (
@@ -1840,13 +1831,6 @@ function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth }) {
       className="sticky top-16 h-[calc(100vh-4rem)] self-start"
       footer={<UserMenuWidget auth={auth} onNavigate={setNav} collapsed={collapsed} />}
     >
-      {!collapsed && (
-        <div className="mb-2 flex h-6 items-center px-2">
-          <span className="text-k-overline uppercase tracking-k-caps text-[var(--ink-500)]">
-            Workspace
-          </span>
-        </div>
-      )}
       <ul className="space-y-0.5">
         {items.map(it => (
           <li key={it.id} data-tour={`nav-${it.id}`}>
@@ -1861,35 +1845,29 @@ function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth }) {
         ))}
       </ul>
 
-      <div className="my-3 h-px bg-[var(--border)]" />
-
-      <ul className="space-y-0.5">
-        {cabinetItems.map(it => (
-          <li key={it.id} data-tour={`nav-${it.id}`}>
-            <SidebarNavItem
-              icon={<it.icon size={15} />}
-              label={it.label}
-              active={nav === it.id}
-              onClick={() => setNav(it.id)}
-              trailing={it.comingSoon ? <Lock size={10} className="text-[var(--ink-400)]" /> : null}
-            />
-          </li>
-        ))}
-      </ul>
+      {/* Single verification card replaces per-row lock icons for explorer tier */}
+      {isExplorer && !collapsed && (
+        <button
+          type="button"
+          onClick={() => onStartVerification?.()}
+          data-tour="nav-verify"
+          className="mt-4 w-full rounded-[var(--radius)] border border-[var(--brand-200)] bg-[var(--brand-50)] px-3 py-2.5 text-left transition hover:bg-[var(--brand-100)]"
+        >
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={14} className="text-[var(--brand-700)] shrink-0" />
+            <span className="text-k-sm font-medium text-[var(--brand-800)]">Verify license</span>
+          </div>
+          <p className="mt-1 text-k-xs leading-snug text-[var(--ink-600)]">
+            Unlock patient charts, lab orders, and signed documents.
+          </p>
+        </button>
+      )}
     </AppSidebar>
   );
 }
 
 function renderBadge(item, active) {
-  if (!item.badge || item.badge === "0") return null;
-  if (item.comingSoon) return <Lock size={10} className={active ? "text-[var(--brand-700)]/70" : "text-[var(--ink-400)]"} />;
-  if (item.lowTone) {
-    return (
-      <StatusPill tone="warning">
-        {item.badge}
-      </StatusPill>
-    );
-  }
+  if (!item.badge) return null;
   return (
     <span className={`font-mono text-[10px] ${active ? "text-[var(--brand-700)]/70" : "text-[var(--ink-500)]"}`}>
       {item.badge}
