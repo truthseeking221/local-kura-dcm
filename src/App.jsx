@@ -10332,6 +10332,60 @@ function RailSection({ id, icon, title, count, open, onToggle, children }) {
   );
 }
 
+// Small inline popover for destructive / secondary order actions. Cancel
+// shouldn't read at the same weight as Edit — it lives behind a "More"
+// affordance so the doctor reaches for it deliberately. Click-outside +
+// Escape close the menu.
+function OrderRowMenu({ onCancel, code }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  const copyCode = async () => {
+    try { await navigator.clipboard.writeText(code); } catch { /* clipboard may be unavailable */ }
+    setOpen(false);
+  };
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="text-[11px] text-ink-3 hover:text-ink inline-flex items-center gap-1 px-1 py-0.5 rounded hover:bg-surface-2"
+      >
+        More <ChevronDown size={10} className={`transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-surface border border-line rounded-md shadow-lg overflow-hidden">
+          <button
+            role="menuitem"
+            onClick={copyCode}
+            className="w-full text-left px-3 py-2 text-[11.5px] text-ink-2 hover:bg-surface-2 inline-flex items-center gap-1.5"
+          >
+            <FileText size={11} className="text-ink-3" /> Copy order code
+          </button>
+          <button
+            role="menuitem"
+            onClick={() => { onCancel(); setOpen(false); }}
+            className="w-full text-left px-3 py-2 text-[11.5px] text-crimson hover:bg-crimson/10 border-t border-line inline-flex items-center gap-1.5"
+          >
+            <X size={11} /> Cancel order
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) {
   const [cancelledIds, setCancelledIds] = useState(() => new Set());
   const [editingOrder, setEditingOrder] = useState(null); // booking obj when modal is open
@@ -10366,44 +10420,74 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
     return b.status === "results-back";
   });
 
+  // "Awaiting collection" is more honest than "Scheduled" when the demo
+  // doesn't carry a real time slot. Scheduled implies an appointment time.
   const statusMeta = {
-    "in-progress":  { label: "In progress",  color: "text-amber bg-amber-soft" },
-    "scheduled":    { label: "Scheduled",    color: "text-ink-2 bg-line-2" },
-    "results-back": { label: "Results back", color: "text-jade-2 bg-jade-soft" },
+    "in-progress":  { label: "In progress",        color: "text-amber bg-amber-soft" },
+    "scheduled":    { label: "Awaiting collection", color: "text-ink-2 bg-line-2" },
+    "results-back": { label: "Results back",       color: "text-jade-2 bg-jade-soft" },
   };
 
   // Nothing to show — return null so the rail doesn't carry an empty card.
   if (active.length === 0 && history.length === 0) return null;
+
+  const scrollToLabHistory = () => {
+    const el = document.querySelector('[data-tour="lab-trends"]');
+    el && el.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  // Format the test list as a compact summary line:
+  //   1 test:     "HbA1c"
+  //   2-3 tests:  "HbA1c, Lipid panel, Microalbumin"
+  //   4+ tests:   "HbA1c, Lipid panel, Microalbumin and 1 more"
+  const formatTestList = (tests) => {
+    if (tests.length <= 3) return tests.join(", ");
+    const head = tests.slice(0, 3).join(", ");
+    const rest = tests.length - 3;
+    return `${head} and ${rest} more`;
+  };
 
   const renderActiveRow = (b) => {
     const meta = statusMeta[b.status];
     const code = getBookingMeta(b, false).code;
     const isJust = justPlaced && b.id === justPlaced.id;
     const canEdit = b.status === "scheduled";
+    const n = b.tests.length;
+    // Hero label leads with order size — "4 tests" / "1 test" — so the
+    // doctor sees the shape of the order before the test names.
+    const heroLabel = n === 1 ? b.tests[0] : `${n} tests`;
+    // Test-list summary line is only shown when hero is the count (n > 1).
+    const showTestSummary = n > 1;
     return (
       <li key={b.id} className={`${isJust ? "booking-pulse-row " : ""}px-3 py-2.5 transition hover:bg-surface-2/40`}>
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="font-mono text-[10px] bg-line-2 px-1.5 py-0.5 rounded shrink-0 tracking-[0.06em] text-ink-2">{code}</span>
+        <div className="flex items-start gap-2 mb-1">
           <div className="flex-1 min-w-0">
-            <div className="text-[12px] text-ink truncate font-medium">{b.tests.join(" · ")}</div>
-            <div className="text-[10px] text-ink-3">{b.when}</div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[12.5px] text-ink truncate font-medium">{heroLabel}</span>
+              <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
+            </div>
+            <div className="text-[10px] text-ink-3 font-mono leading-snug">
+              {code} · {b.when}
+            </div>
+            {showTestSummary && (
+              <div className="text-[11px] text-ink-2 leading-snug mt-1 truncate" title={b.tests.join(", ")}>
+                {formatTestList(b.tests)}
+              </div>
+            )}
           </div>
-          <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
         </div>
         {canEdit && (
-          <div className="flex items-center gap-3 pl-[60px]">
+          <div className="flex items-center justify-between mt-1.5">
             <button
               onClick={() => setEditingOrder(b)}
               className="text-[11px] font-medium text-jade-2 hover:text-jade hover:underline inline-flex items-center gap-1"
             >
               <Pencil size={10} /> Edit order
             </button>
-            <button
-              onClick={() => setCancelledIds(prev => { const next = new Set(prev); next.add(b.id); return next; })}
-              className="text-[11px] text-ink-3 hover:text-crimson hover:underline"
-            >
-              Cancel order
-            </button>
+            <OrderRowMenu
+              onCancel={() => setCancelledIds(prev => { const next = new Set(prev); next.add(b.id); return next; })}
+              code={code}
+            />
           </div>
         )}
       </li>
@@ -10416,22 +10500,43 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
       ? { label: "Cancelled", color: "text-ink-3 bg-line-2" }
       : statusMeta[b.status];
     const code = getBookingMeta(b, isCancelled).code;
+    const n = b.tests.length;
+    const heroLabel = n === 1 ? b.tests[0] : `${n} tests`;
+    const showTestSummary = n > 1;
+    const isResults = !isCancelled && b.status === "results-back";
     return (
-      <li key={b.id} className="px-3 py-2 flex items-center gap-2 hover:bg-surface-2/40 transition">
-        <span className={`font-mono text-[10px] bg-line-2 px-1.5 py-0.5 rounded shrink-0 tracking-[0.06em] ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{code}</span>
-        <div className="flex-1 min-w-0">
-          <div className={`text-[11.5px] truncate ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{b.tests.join(" · ")}</div>
-          <div className="text-[10px] text-ink-3">{b.when}</div>
+      <li key={b.id} className="px-3 py-2.5 hover:bg-surface-2/40 transition">
+        <div className="flex items-start gap-2 mb-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className={`text-[12px] truncate font-medium ${isCancelled ? "line-through text-ink-3" : "text-ink"}`}>{heroLabel}</span>
+              <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
+            </div>
+            <div className={`text-[10px] font-mono leading-snug ${isCancelled ? "text-ink-3 line-through" : "text-ink-3"}`}>
+              {code} · {b.when}
+            </div>
+            {showTestSummary && (
+              <div className={`text-[11px] leading-snug mt-1 truncate ${isCancelled ? "text-ink-3 line-through" : "text-ink-2"}`} title={b.tests.join(", ")}>
+                {formatTestList(b.tests)}
+              </div>
+            )}
+          </div>
         </div>
-        <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
-        {!isCancelled && b.status === "results-back" && (
-          <button
-            onClick={() => onReorder && onReorder(b)}
-            title="Reorder same tests"
-            className="text-[10.5px] text-jade-2 font-medium hover:underline shrink-0"
-          >
-            Reorder
-          </button>
+        {isResults && (
+          <div className="flex items-center gap-3 mt-1.5">
+            <button
+              onClick={scrollToLabHistory}
+              className="text-[11px] font-medium text-jade-2 hover:text-jade hover:underline inline-flex items-center gap-1"
+            >
+              <FlaskConical size={10} /> Review result
+            </button>
+            <button
+              onClick={() => onReorder && onReorder(b)}
+              className="text-[11px] text-ink-3 hover:text-ink hover:underline"
+            >
+              Reorder
+            </button>
+          </div>
         )}
       </li>
     );
@@ -10476,7 +10581,7 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
             <ChevronDown size={13} className={`text-ink-3 transition ${showHistory ? "rotate-180" : ""}`} />
           </button>
           {showHistory && (
-            <ul className="divide-y divide-line-2 border-t border-line-2">
+            <ul className="divide-y divide-line border-t border-line">
               {history.map(renderHistoryRow)}
             </ul>
           )}
