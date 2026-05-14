@@ -10060,7 +10060,7 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
         {headerCompact ? (
           <div className="mt-2 pt-2 border-t border-line-2 flex items-center gap-2 text-[11.5px]">
             <Sparkles size={12} className="text-jade-2 shrink-0" />
-            <span className="text-[9.5px] uppercase tracking-[0.18em] text-jade font-semibold shrink-0">AI recap</span>
+            <span className="text-[9.5px] uppercase tracking-[0.18em] text-jade font-semibold shrink-0">Needs review</span>
             <span className="text-ink-2 truncate">{patient.summary} <span className="text-jade-2 font-semibold">Next:</span> <span className="text-ink-2">{patient.nextStep}</span></span>
           </div>
         ) : (
@@ -10072,7 +10072,7 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10.5px] uppercase tracking-[0.16em] text-jade font-semibold">Needs review</span>
-                  <span className="text-[10px] text-ink-3">· AI recap refreshed daily</span>
+                  <span className="text-[10px] text-ink-3">· clinical summary, refreshed daily</span>
                 </div>
                 <p className="text-[13px] text-ink leading-relaxed">
                   {patient.summary}
@@ -10115,10 +10115,12 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
       {!scribeOpen && (
         <button
           onClick={() => setScribeOpen(true)}
-          title="Voice notes — speech to SOAP note"
-          className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-jade text-white shadow-lg hover:opacity-95 transition flex items-center justify-center"
+          title="Dictate clinical note"
+          aria-label="Dictate clinical note"
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 pl-3.5 pr-4 h-12 rounded-full bg-jade text-white shadow-lg hover:opacity-95 transition"
         >
-          <Mic size={20} />
+          <Mic size={17} />
+          <span className="text-[12.5px] font-medium">Dictate note</span>
         </button>
       )}
 
@@ -10184,15 +10186,18 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             />
           </div>
 
-          {/* Suggested nudge — display-only context, no CTA */}
+          {/* Follow up — patient outreach prompt with clear CTA */}
           {isSokha && (
-            <div className="rounded-xl border border-jade bg-jade-soft/60 p-4">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-jade font-semibold mb-1.5">
-                <Send size={11} /> Suggested nudge
+            <div className="rounded-xl border border-line bg-surface p-4">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-ink-3 font-semibold mb-1.5">
+                <Send size={11} /> Follow up
               </div>
-              <p className="text-[12px] text-ink-2 leading-relaxed">
-                Last HbA1c was 3 months ago. Patient not in cabinet — <span className="font-medium">nudge via Telegram</span> and send an e-Rx walk-in code if they confirm.
+              <p className="text-[12px] text-ink-2 leading-relaxed mb-2.5">
+                HbA1c follow-up is due. Send Sokha a walk-in lab link.
               </p>
+              <button className="w-full text-[11.5px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition">
+                Send link via Telegram
+              </button>
             </div>
           )}
 
@@ -10615,7 +10620,9 @@ function MedicationsCard({ isSokha }) {
         </ul>
       ) : (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
-          No medications recorded in Kura.
+          {remaining.length > 0
+            ? "Medication list not confirmed in Kura. Suggested from chart data below."
+            : "No medications recorded in Kura."}
         </div>
       )}
 
@@ -11734,7 +11741,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-line-2">
         <div className="flex items-center gap-2">
           <ShoppingCart size={14} className="text-jade-2" />
-          <h3 className="font-display text-[15px] font-medium">Quick order</h3>
+          <h3 className="font-display text-[15px] font-medium">Order labs</h3>
           {selected.size > 0 && (
             <span className="text-[10.5px] font-mono text-jade-2 bg-jade-soft px-1.5 py-0.5 rounded">{selected.size}</span>
           )}
@@ -11756,7 +11763,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
             {filtered(suggested).length > 0 && (
               <>
                 <div className="text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-2 inline-flex items-center gap-1.5">
-                  <Sparkles size={10} /> AI suggested
+                  <Sparkles size={10} /> Suggested from results
                 </div>
                 <ul className="space-y-1">
                   {filtered(suggested).map(t => (
@@ -12109,30 +12116,34 @@ function DiagnosesCard({ isSokha }) {
         </ul>
       ) : (
         <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
-          No diagnoses on file{remaining.length > 0 ? " — pick from the suggestions below." : "."}
+          {remaining.length > 0
+            ? "Diagnoses not yet confirmed in Kura. Suggested from chart data below."
+            : "No diagnoses on file."}
         </div>
       )}
 
-      {/* AI suggestions */}
+      {/* Suggested from results — framed as clinician review, not auto-add */}
       {remaining.length > 0 && (
         <div className="px-3 pb-3 pt-2 border-t border-line-2 bg-surface-2">
           <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-1.5">
-            <Sparkles size={10} /> AI suggestions
+            <Sparkles size={10} /> Suggested from results
           </div>
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             {remaining.map(c => (
-              <li key={c.code}>
+              <li key={c.code} className="rounded-md border border-line bg-surface px-2.5 py-2">
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="font-mono text-[10px] text-plum bg-line-2 px-1.5 py-0.5 rounded shrink-0 mt-0.5">{c.code}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11.5px] text-ink leading-tight">{c.label}</div>
+                    <div className="text-[10px] text-ink-3 mt-0.5">Reason: {c.trigger}</div>
+                  </div>
+                </div>
                 <button
                   onClick={() => addCode(c)}
-                  className="w-full text-left rounded-md border border-line hover:border-jade-2 hover:bg-jade-soft/30 px-2 py-1.5 transition group flex items-center gap-2"
-                  title={`Suggested · ${c.trigger}`}
+                  className="w-full text-[11px] font-medium text-jade-2 hover:text-jade px-2 py-1.5 rounded-md border border-line hover:border-jade-2 transition"
+                  title={`Open review for ${c.label}`}
                 >
-                  <span className="font-mono text-[10px] text-plum bg-line-2 px-1.5 py-0.5 rounded shrink-0">{c.code}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11.5px] text-ink-2 truncate">{c.label}</div>
-                    <div className="text-[9.5px] text-ink-3 truncate">{c.trigger}</div>
-                  </div>
-                  <Plus size={11} className="text-jade-2 shrink-0" />
+                  Review diagnosis
                 </button>
               </li>
             ))}
@@ -14392,12 +14403,12 @@ function LabTrendTable({ patient, reflexPhase }) {
       </div>
 
       {range !== "all" && hiddenColCount > 0 && (
-        <div className="px-4 py-2 border-b border-line-2 bg-amber-soft/60 flex items-center gap-2 text-[11.5px]">
-          <AlertTriangle size={12} className="text-amber shrink-0" />
-          <span className="text-ink-2 flex-1">
-            You're viewing a filtered range — <span className="font-mono">{hiddenColCount}</span> earlier {hiddenColCount === 1 ? "draw is" : "draws are"} hidden.
+        <div className="px-4 py-2 border-b border-line-2 bg-surface-2/60 flex items-center gap-2 text-[11.5px]">
+          <span className="text-ink-3 flex-1">
+            Showing the last {range === "7d" ? "7 days" : range === "3mo" ? "3 months" : "6 months"}
+            <span className="text-ink-3"> · <span className="font-mono">{hiddenColCount}</span> earlier {hiddenColCount === 1 ? "draw" : "draws"} hidden</span>
           </span>
-          <button onClick={() => setRange("all")} className="text-jade-2 font-medium hover:underline">Reset to all</button>
+          <button onClick={() => setRange("all")} className="text-jade-2 font-medium hover:underline">Show earlier results</button>
         </div>
       )}
 
