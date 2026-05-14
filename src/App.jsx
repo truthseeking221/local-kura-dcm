@@ -16436,26 +16436,17 @@ function EkycReviewStep({ form }) {
 
 function EkycDoneStep({ onComplete }) {
   return (
-    <div className="text-center py-6">
-      <div className="w-16 h-16 rounded-full bg-jade-soft text-jade-2 flex items-center justify-center mx-auto mb-4">
-        <CheckCircle2 size={28} />
+    <div className="text-center py-8">
+      <div className="w-14 h-14 rounded-full bg-jade-soft text-jade-2 flex items-center justify-center mx-auto mb-5">
+        <CheckCircle2 size={26} />
       </div>
-      <h3 className="font-display text-[22px] font-medium mb-1">You're submitted</h3>
-      <p className="text-[12.5px] text-ink-2 leading-relaxed max-w-[420px] mx-auto mb-5">
-        For the sake of this prototype we'll instantly grant you <span className="font-medium text-ink">Verified clinician</span> status. In production, expect an SMS within 24 hours.
+      <h3 className="font-display text-[20px] font-medium mb-2">Verification submitted</h3>
+      <p className="text-[13px] text-ink-2 leading-relaxed max-w-[420px] mx-auto mb-6">
+        Your license has been submitted. For this prototype, Verified mode is now available. In production, reviews are usually completed within 24 hours.
       </p>
-      <div className="rounded-lg border border-jade bg-jade-soft/50 px-4 py-3 max-w-[420px] mx-auto mb-5 text-left">
-        <div className="text-[10.5px] uppercase tracking-[0.16em] text-jade-2 font-semibold mb-2">Unlocked</div>
-        <ul className="space-y-1.5 text-[12px]">
-          <li className="flex items-start gap-2"><CheckCircle2 size={12} className="text-jade-2 mt-0.5 shrink-0" /> Real patient charts &amp; PHI</li>
-          <li className="flex items-start gap-2"><CheckCircle2 size={12} className="text-jade-2 mt-0.5 shrink-0" /> Place lab orders + bookings</li>
-          <li className="flex items-start gap-2"><CheckCircle2 size={12} className="text-jade-2 mt-0.5 shrink-0" /> Generate Dx prescriptions (PDF, MoH-stamped)</li>
-          <li className="flex items-start gap-2"><CheckCircle2 size={12} className="text-jade-2 mt-0.5 shrink-0" /> Public directory profile goes live</li>
-        </ul>
-      </div>
-      <button onClick={onComplete} className="bg-jade text-white text-[13px] px-5 py-2.5 rounded-md font-medium hover:opacity-90 inline-flex items-center gap-1.5">
-        Enter Verified mode <ArrowRight size={13} />
-      </button>
+      <Button onClick={onComplete} size="lg">
+        Continue
+      </Button>
     </div>
   );
 }
