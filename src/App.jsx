@@ -16116,57 +16116,31 @@ function EkycLandingPrompt({ onClose, onStart }) {
           <X size={16} />
         </button>
 
-        <div className="px-7 pt-8 pb-6 text-center">
-          <h2 className="font-display text-[19px] font-medium leading-snug px-2">
-            Confirm your identity to unlock<br />real practice on Kura
-          </h2>
-
-          <div className="my-6 flex items-center justify-center">
-            <div className="relative w-28 h-28 rounded-full bg-jade-soft flex items-center justify-center">
-              <div className="absolute inset-2 rounded-full bg-bg flex items-center justify-center border border-jade/30">
-                <ShieldCheck size={42} className="text-jade-2" strokeWidth={1.5} />
-              </div>
-              <Stethoscope size={18} className="text-jade-2 absolute -left-1 top-6 bg-bg rounded-full p-0.5 border border-jade/30" />
-              <CheckCircle2 size={18} className="text-jade-2 absolute -right-1 bottom-6 bg-bg rounded-full" />
+        <div className="px-7 pt-8 pb-7 text-center">
+          <div className="mb-5 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-jade-soft flex items-center justify-center">
+              <ShieldCheck size={26} className="text-jade-2" strokeWidth={1.75} />
             </div>
           </div>
 
-          <p className="text-[13px] text-ink font-medium leading-snug mb-4 px-1">
-            Guaranteeing the highest level of safety for patients and clinicians is a priority for Kura. Confirm your identity with your MoH license.
+          <h2 className="font-display text-[20px] font-medium leading-snug mb-2">
+            Verify your license
+          </h2>
+
+          <p className="text-[13px] text-ink-2 leading-relaxed mb-6 px-2">
+            Confirm your MoH license to use Kura with real patients.
           </p>
 
-          <ul className="text-left space-y-2.5 mb-6 px-1">
-            <li className="flex items-start gap-2.5 text-[12px] text-ink-2 leading-snug">
-              <CheckCircle2 size={14} className="text-jade-2 shrink-0 mt-0.5" />
-              <span><span className="text-ink font-medium">One-time check</span> — this prompt disappears once your license is verified</span>
-            </li>
-            <li className="flex items-start gap-2.5 text-[12px] text-ink-2 leading-snug">
-              <CheckCircle2 size={14} className="text-jade-2 shrink-0 mt-0.5" />
-              <span><span className="text-ink font-medium">Quick &amp; required</span> for every clinician using Kura — most are verified the same day</span>
-            </li>
-          </ul>
-
-          <button
-            onClick={onStart}
-            className="w-full bg-jade text-white text-[13px] font-semibold uppercase tracking-wider px-4 py-3 rounded-md hover:opacity-90 inline-flex items-center justify-center gap-2"
-          >
-            <ShieldCheck size={14} /> Verify my MoH license
-          </button>
+          <Button onClick={onStart} className="w-full" size="lg">
+            Verify license
+          </Button>
 
           <button
             onClick={onClose}
-            className="mt-3 text-[12px] text-jade-2 hover:underline underline-offset-2 font-medium"
+            className="mt-3 text-[12px] text-ink-3 hover:text-ink-2 underline-offset-2 hover:underline"
           >
-            I'll do it later — keep exploring
+            Keep exploring
           </button>
-        </div>
-
-        <div className="px-7 py-3.5 border-t border-line-2 bg-surface-2/40 flex items-center justify-center gap-1.5 text-[11.5px] text-ink-2">
-          <HelpCircle size={13} className="text-ink-3" />
-          <span>Need help?</span>
-          <a href="#" onClick={e => e.preventDefault()} className="text-jade-2 font-medium hover:underline">
-            Open help center
-          </a>
         </div>
       </div>
     </div>,
