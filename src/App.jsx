@@ -9904,6 +9904,11 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
   // state as the ReflexTestingCard (don't show FT3/FT4 in the flowsheet until
   // the doctor approves and payment runs).
   const [reflexPhase, setReflexPhase] = useState("detected");
+  // Right-rail accordion — only one secondary section open at a time. Null = all
+  // collapsed (default). Primary surfaces (Order labs, Recent orders, Follow up)
+  // stay always-visible.
+  const [openRailSection, setOpenRailSection] = useState(null);
+  const toggleRail = (id) => setOpenRailSection(prev => prev === id ? null : id);
   // Just-placed booking from the Quick order panel — the new row + NEW badge
   // persist until reload, but the card-level jade glow is its own state that
   // auto-fades after the pulse so it doesn't sit there forever.
@@ -10012,10 +10017,10 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
           state) and is NOT transitioned — that's what caused the flicker
           before. At 200ms the swap reads as "inside" the surrounding resize
           motion, plus hysteresis on the scroll trigger keeps the toggle rare. */}
-      <div data-tour="patient-header" className={`bg-surface border border-line rounded-xl mb-4 sticky top-[60px] z-30 shadow-sm transition-[padding] duration-200 ease-out ${headerCompact ? "px-4 py-2.5" : "p-5"}`}>
-        <div className={`flex items-center transition-[gap] duration-200 ease-out ${headerCompact ? "gap-3" : "gap-5"}`}>
-          <div className={`rounded-xl flex items-center justify-center font-display font-medium shrink-0 transition-[width,height,font-size,border-radius] duration-200 ease-out ${
-            headerCompact ? "w-9 h-9 text-[13px] rounded-lg" : "w-16 h-16 text-[24px]"
+      <div data-tour="patient-header" className={`bg-surface border border-line rounded-xl mb-4 sticky top-[60px] z-30 shadow-sm transition-[padding] duration-200 ease-out ${headerCompact ? "px-4 py-2.5" : "px-5 py-4"}`}>
+        <div className={`flex items-center transition-[gap] duration-200 ease-out ${headerCompact ? "gap-3" : "gap-3.5"}`}>
+          <div className={`rounded-lg flex items-center justify-center font-display font-medium shrink-0 transition-[width,height,font-size,border-radius] duration-200 ease-out ${
+            headerCompact ? "w-9 h-9 text-[13px]" : "w-11 h-11 text-[16px]"
           } ${
             patient.flag === "critical" ? "bg-crimson-soft text-crimson" :
             patient.flag === "warning"  ? "bg-amber-soft text-amber" :
@@ -10025,7 +10030,7 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className={`font-display font-medium leading-none transition-[font-size] duration-200 ease-out ${headerCompact ? "text-[18px]" : "text-[28px]"}`}>
+              <h1 className={`font-display font-medium leading-none transition-[font-size] duration-200 ease-out ${headerCompact ? "text-[16px]" : "text-[20px]"}`}>
                 {patient.name}
               </h1>
               {problems[0] && (
@@ -10042,15 +10047,12 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
               )}
             </div>
             {!headerCompact && (
-            <div className="mt-1">
-              <div className="text-[13px] text-ink-2 mb-1">
-                {patient.khmer} · {patient.age} {patient.sex === "M" ? "♂" : "♀"} · MRN <span className="font-mono">{patient.id}</span>
-              </div>
-              <div className="flex items-center gap-3 text-[11.5px] text-ink-3 flex-wrap">
-                <span className="inline-flex items-center gap-1"><Phone size={11} /> +855 12 ••• 4471</span>
-                <span className="inline-flex items-center gap-1"><CreditCard size={11} /> {patient.insurance}</span>
-                <span className="inline-flex items-center gap-1"><Clock size={11} /> Last seen {patient.lastSeen}</span>
-              </div>
+            <div className="mt-1 flex items-center gap-3 text-[12px] text-ink-3 flex-wrap">
+              <span>{patient.age} {patient.sex === "M" ? "♂" : "♀"}</span>
+              <span className="text-ink-3/50">·</span>
+              <span>MRN <span className="font-mono text-ink-2">{patient.id}</span></span>
+              <span className="text-ink-3/50">·</span>
+              <span className="inline-flex items-center gap-1"><Clock size={11} /> Last seen {patient.lastSeen}</span>
             </div>
             )}
           </div>
@@ -10064,24 +10066,17 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             <span className="text-ink-2 truncate">{patient.summary} <span className="text-jade-2 font-semibold">Next:</span> <span className="text-ink-2">{patient.nextStep}</span></span>
           </div>
         ) : (
-          <div className="mt-4 pt-4 border-t border-line-2">
-            <div className="rounded-lg bg-jade-soft/40 border border-jade-soft p-4 flex items-start gap-3">
-              <div className="w-9 h-9 rounded-md bg-jade text-white flex items-center justify-center shrink-0">
-                <Sparkles size={15} />
+          <div className="mt-3 pt-3 border-t border-line-2 flex items-start gap-2.5">
+            <Sparkles size={13} className="text-jade-2 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[10.5px] uppercase tracking-[0.14em] text-jade font-semibold">Needs review</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10.5px] uppercase tracking-[0.16em] text-jade font-semibold">Needs review</span>
-                  <span className="text-[10px] text-ink-3">· clinical summary, refreshed daily</span>
-                </div>
-                <p className="text-[13px] text-ink leading-relaxed">
-                  {patient.summary}
-                </p>
-                <div className="mt-2.5 pt-2.5 border-t border-jade-soft/80">
-                  <div className="text-[10.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1">Suggested next step</div>
-                  <p className="text-[13px] text-ink font-medium leading-snug">{patient.nextStep}</p>
-                </div>
-              </div>
+              <p className="text-[12.5px] text-ink leading-relaxed">
+                {patient.summary}
+                <span className="text-jade-2 font-medium"> Suggested:</span>{" "}
+                <span className="text-ink-2">{patient.nextStep}</span>
+              </p>
             </div>
           </div>
         )}
@@ -10201,17 +10196,69 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
             </div>
           )}
 
-          <div data-tour="meds-card" className="space-y-4">
-            <MedicationsCard isSokha={isSokha} />
-            <DiagnosesCard isSokha={isSokha} />
+          {/* Single-open accordion for secondary clinical + admin surfaces.
+              Default all collapsed so the rail doesn't read like a wall of
+              decisions. Doctor opens what they need. */}
+          <div data-tour="meds-card" className="space-y-2">
+            <RailSection
+              id="medications"
+              icon={<Pill size={13} className="text-jade-2" />}
+              title="Review medication plan"
+              count={isSokha ? "3 for review" : null}
+              open={openRailSection === "medications"}
+              onToggle={() => toggleRail("medications")}
+            >
+              <MedicationsCard isSokha={isSokha} />
+            </RailSection>
+
+            <RailSection
+              id="diagnoses"
+              icon={<ClipboardList size={13} className="text-plum" />}
+              title="Review diagnoses"
+              count={isSokha ? "4 for review" : null}
+              open={openRailSection === "diagnoses"}
+              onToggle={() => toggleRail("diagnoses")}
+            >
+              <DiagnosesCard isSokha={isSokha} />
+            </RailSection>
+
+            <RailSection
+              id="chart-gaps"
+              icon={<AlertTriangle size={13} className="text-ink-3" />}
+              title="Chart gaps"
+              count="3 items"
+              open={openRailSection === "chart-gaps"}
+              onToggle={() => toggleRail("chart-gaps")}
+            >
+              <div className="space-y-3">
+                <AllergiesCard knownDefault={false} />
+                <AlertsCard knownDefault={false} />
+                <VaccinationsCard />
+              </div>
+            </RailSection>
+
+            <RailSection
+              id="admin"
+              icon={<CreditCard size={13} className="text-ink-3" />}
+              title="Admin"
+              count="Insurance"
+              open={openRailSection === "admin"}
+              onToggle={() => toggleRail("admin")}
+            >
+              <InsuranceCard patient={patient} knownDefault={false} />
+            </RailSection>
+
+            <RailSection
+              id="documents"
+              icon={<FileText size={13} className="text-ink-3" />}
+              title="Documents"
+              count={null}
+              open={openRailSection === "documents"}
+              onToggle={() => toggleRail("documents")}
+            >
+              <DocumentsCard isSokha={isSokha} />
+            </RailSection>
           </div>
-
-          <AllergiesCard knownDefault={false} />
-          <InsuranceCard patient={patient} knownDefault={false} />
-          <AlertsCard knownDefault={false} />
-          <VaccinationsCard />
-
-          <DocumentsCard isSokha={isSokha} />
 
           {/* Secondary routing actions — hospital referral + scheduling. Two
               side-by-side bento cards that mirror the action ribbon's button
@@ -10242,6 +10289,46 @@ function PatientDetailFull({ patient, onBack, onQuickOrder, onOrderPlaced, onVie
       </div>
 
     </div>
+  );
+}
+
+/* RailSection — single-open accordion for the right rail.
+   Collapsed: thin button row (border + bg-surface) with title + count + chevron.
+   Open: renders the wrapped card content directly (children have own chrome).
+   Doctor sees one decision surface at a time instead of a wall of cards. */
+function RailSection({ id, icon, title, count, open, onToggle, children }) {
+  if (open) {
+    return (
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded
+          aria-controls={`rail-${id}`}
+          className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12.5px] text-ink-3 hover:text-ink transition"
+        >
+          <ChevronDown size={13} className="rotate-180 shrink-0" />
+          <span className="flex-1 truncate">Collapse {title.toLowerCase()}</span>
+        </button>
+        <div id={`rail-${id}`}>{children}</div>
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={false}
+      aria-controls={`rail-${id}`}
+      className="w-full bg-surface border border-line rounded-xl flex items-center gap-2 px-3.5 py-2.5 text-left hover:border-ink-3 hover:bg-surface-2/30 transition"
+    >
+      <span className="shrink-0">{icon}</span>
+      <span className="flex-1 text-[13px] font-medium text-ink truncate">{title}</span>
+      {count && (
+        <span className="text-[10.5px] text-ink-3 font-mono shrink-0">{count}</span>
+      )}
+      <ChevronDown size={14} className="text-ink-3 shrink-0" />
+    </button>
   );
 }
 
