@@ -16150,7 +16150,7 @@ function EkycLandingPrompt({ onClose, onStart }) {
 
 function EkycFlowModal({ onClose, onComplete }) {
   const [step, setStep] = useState(0); // 0..3 form steps · 4 = success
-  const STEPS = ["License", "Identity", "Practice", "Review"];
+  const STEPS = ["License details", "Identity", "Practice", "Review"];
 
   // Pre-seeded with reasonable defaults so the doctor can click through fast
   // and see the flow shape. Real form would be empty.
@@ -16186,39 +16186,27 @@ function EkycFlowModal({ onClose, onComplete }) {
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-bg border border-line rounded-xl shadow-xl w-full max-w-[680px] max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-line-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-md bg-jade text-white flex items-center justify-center"><ShieldCheck size={16} /></div>
-            <div>
-              <h2 className="font-display text-[17px] font-medium leading-tight">eKYC verification</h2>
-              <div className="text-[10.5px] text-ink-3 uppercase tracking-[0.14em] font-semibold">
-                {step < STEPS.length ? `Step ${step + 1} of ${STEPS.length} · ${STEPS[step]}` : "Submitted"}
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-line-2">
+          <div>
+            <h2 className="font-display text-[15px] font-medium leading-tight">
+              {step < STEPS.length ? STEPS[step] : "Submitted"}
+            </h2>
+            {step < STEPS.length && (
+              <div className="text-[11.5px] text-ink-3 mt-0.5">
+                Step {step + 1} of {STEPS.length}
               </div>
-            </div>
+            )}
           </div>
           <button onClick={onClose} className="text-ink-3 hover:text-ink p-1 -m-1"><X size={16} /></button>
         </div>
 
-        {/* Step rail */}
+        {/* Compact progress bar */}
         {step < STEPS.length && (
-          <div className="flex items-center gap-1 px-6 py-3 border-b border-line-2 bg-surface-2/40">
-            {STEPS.map((s, i) => (
-              <React.Fragment key={s}>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9.5px] font-semibold ${
-                    i < step ? "bg-jade-2 text-white" :
-                    i === step ? "bg-jade text-white" :
-                    "bg-line-2 text-ink-3"
-                  }`}>
-                    {i < step ? <CheckCircle2 size={11} /> : i + 1}
-                  </div>
-                  <span className={`text-[10.5px] font-medium uppercase tracking-wider ${
-                    i <= step ? "text-ink-2" : "text-ink-3"
-                  }`}>{s}</span>
-                </div>
-                {i < STEPS.length - 1 && <div className={`flex-1 h-px ${i < step ? "bg-jade-2" : "bg-line-2"}`} />}
-              </React.Fragment>
-            ))}
+          <div className="h-1 bg-line-2/60">
+            <div
+              className="h-full bg-jade-2 transition-all"
+              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+            />
           </div>
         )}
 
@@ -16234,24 +16222,18 @@ function EkycFlowModal({ onClose, onComplete }) {
         {/* Footer — hidden on success state */}
         {step < STEPS.length && (
           <div className="px-6 py-3.5 border-t border-line-2 bg-surface-2/30 flex items-center justify-between gap-3">
-            <button onClick={onClose} className="text-[11.5px] text-ink-3 hover:text-ink underline-offset-2 hover:underline">
-              Skip for now · keep exploring
+            <button onClick={onClose} className="text-[12px] text-ink-3 hover:text-ink-2 underline-offset-2 hover:underline">
+              Skip for now
             </button>
             <div className="flex items-center gap-2">
               {step > 0 && (
-                <button onClick={() => setStep(s => s - 1)} className="text-[12px] px-3 py-2 rounded-md border border-line text-ink-2 hover:border-ink inline-flex items-center gap-1.5">
-                  <ArrowLeft size={11} /> Back
-                </button>
+                <Button variant="outline" size="sm" onClick={() => setStep(s => s - 1)}>
+                  Back
+                </Button>
               )}
-              <button
-                onClick={next}
-                disabled={!stepValid()}
-                className={`text-[12.5px] px-4 py-2 rounded-md font-medium inline-flex items-center gap-1.5 transition ${
-                  stepValid() ? "bg-jade text-white hover:opacity-90" : "bg-line text-ink-3 cursor-not-allowed"
-                }`}
-              >
-                {step === STEPS.length - 1 ? <><CheckCircle2 size={12} /> Submit for verification</> : <>Next <ArrowRight size={11} /></>}
-              </button>
+              <Button onClick={next} disabled={!stepValid()} size="sm">
+                {step === STEPS.length - 1 ? "Submit for verification" : "Continue"}
+              </Button>
             </div>
           </div>
         )}
@@ -16264,13 +16246,13 @@ function EkycFlowModal({ onClose, onComplete }) {
 function EkycLicenseStep({ form, update }) {
   return (
     <>
-      <h3 className="font-display text-[20px] font-medium mb-1">Your MoH license</h3>
-      <p className="text-[12.5px] text-ink-2 mb-5 leading-relaxed">
-        Cambodia's Ministry of Health needs your license number to confirm you're a registered clinician. We cross-check against the public MoH registry — typically verified within 24h.
+      <h3 className="font-display text-[20px] font-medium mb-1.5">Add your MoH license</h3>
+      <p className="text-[13px] text-ink-2 mb-5 leading-relaxed">
+        Enter your license number and upload a photo of your license. We'll use this to confirm you're registered to practice in Cambodia.
       </p>
       <div className="space-y-4">
         <div>
-          <label className="block text-[10.5px] uppercase tracking-[0.16em] text-ink-3 font-semibold mb-1.5">License number</label>
+          <label className="block text-[12px] text-ink-2 font-medium mb-1.5">License number</label>
           <input
             value={form.licenseNumber}
             onChange={e => update("licenseNumber", e.target.value)}
@@ -16279,7 +16261,7 @@ function EkycLicenseStep({ form, update }) {
           />
         </div>
         <div>
-          <label className="block text-[10.5px] uppercase tracking-[0.16em] text-ink-3 font-semibold mb-1.5">Expires</label>
+          <label className="block text-[12px] text-ink-2 font-medium mb-1.5">Expiry date</label>
           <input
             type="month"
             value={form.licenseExpiry}
@@ -16288,12 +16270,13 @@ function EkycLicenseStep({ form, update }) {
           />
         </div>
         <div>
-          <div className="text-[10.5px] uppercase tracking-[0.16em] text-ink-3 font-semibold mb-1.5">Upload your license</div>
-          <div className="grid grid-cols-2 gap-2">
-            <EkycUploadTile label="Front side" done={form.licenseFront} onClick={() => update("licenseFront", true)} />
-            <EkycUploadTile label="Back side" done={form.licenseBack} onClick={() => update("licenseBack", true)} optional />
-          </div>
+          <div className="text-[12px] text-ink-2 font-medium mb-1.5">License photo</div>
+          <EkycUploadTile label="Front side" done={form.licenseFront} onClick={() => update("licenseFront", true)} required />
+          <EkycUploadTile label="Back side" done={form.licenseBack} onClick={() => update("licenseBack", true)} optional compact />
         </div>
+        <p className="text-[11.5px] text-ink-3 pt-1">
+          Most reviews completed within 24 hours.
+        </p>
       </div>
     </>
   );
@@ -16477,20 +16460,47 @@ function EkycDoneStep({ onComplete }) {
   );
 }
 
-function EkycUploadTile({ label, done, onClick, optional }) {
+function EkycUploadTile({ label, done, onClick, optional, required, compact }) {
+  // Compact variant: lighter secondary action row (back side, optional uploads)
+  if (compact) {
+    return (
+      <button
+        onClick={onClick}
+        className={`mt-2 w-full rounded-md border border-dashed px-3 py-2.5 transition flex items-center gap-2.5 text-left ${
+          done ? "border-jade-2 bg-jade-soft/40" : "border-line hover:border-ink-3 bg-surface"
+        }`}
+      >
+        <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${done ? "bg-jade-2 text-white" : "bg-line-2 text-ink-3"}`}>
+          {done ? <CheckCircle2 size={13} /> : <FileText size={12} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] text-ink-2">
+            {done ? `${label} added` : `Add ${label.toLowerCase()} if needed`}
+          </div>
+        </div>
+        {optional && !done && (
+          <span className="text-[10.5px] text-ink-3">Optional</span>
+        )}
+      </button>
+    );
+  }
   return (
     <button
       onClick={onClick}
-      className={`rounded-md border-2 border-dashed px-3 py-4 transition text-center ${
+      className={`w-full rounded-md border-2 border-dashed px-3 py-4 transition text-center ${
         done ? "border-jade-2 bg-jade-soft/40" : "border-line hover:border-ink bg-surface"
       }`}
     >
       <div className={`w-8 h-8 rounded-md flex items-center justify-center mx-auto mb-1.5 ${done ? "bg-jade-2 text-white" : "bg-line-2 text-ink-3"}`}>
         {done ? <CheckCircle2 size={15} /> : <FileText size={14} />}
       </div>
-      <div className="text-[11.5px] font-medium text-ink-2">{label}</div>
-      <div className="text-[10px] text-ink-3 mt-0.5">
-        {done ? "Photo on file · tap to retake" : optional ? "Optional · tap to upload" : "Tap to upload or take photo"}
+      <div className="flex items-center justify-center gap-1.5">
+        <span className="text-[12px] font-medium text-ink-2">{label}</span>
+        {required && <span className="text-[10px] text-ink-3">Required</span>}
+        {optional && <span className="text-[10px] text-ink-3">Optional</span>}
+      </div>
+      <div className="text-[10.5px] text-ink-3 mt-0.5">
+        {done ? "Photo on file · tap to retake" : "Tap to upload or take photo"}
       </div>
     </button>
   );
