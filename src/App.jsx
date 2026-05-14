@@ -3349,7 +3349,7 @@ function EditBookingTestsPanel({ order, onCancel, onSave, inline = false }) {
                     {isNew && (
                       <span className="text-[9.5px] uppercase tracking-wider font-semibold text-jade bg-jade-soft px-1.5 py-0.5 rounded shrink-0">New</span>
                     )}
-                    <span className="font-mono text-[11.5px] text-ink-3 shrink-0">${t.price.toFixed(2)}</span>
+                    <span className="font-mono text-[11.5px] text-ink-3 shrink-0">{t.price > 0 ? fmtPrice(t.price) : "Pending"}</span>
                     <button onClick={() => removeTest(t.code)} title="Remove" className="text-ink-3 hover:text-crimson p-0.5">
                       <X size={12} />
                     </button>
@@ -3393,7 +3393,7 @@ function EditBookingTestsPanel({ order, onCancel, onSave, inline = false }) {
                   >
                     <span className="font-mono text-[10px] text-ink-2 bg-line-2 px-1.5 py-0.5 rounded shrink-0">{t.code}</span>
                     <span className="flex-1 text-[12.5px] text-ink truncate">{t.name}</span>
-                    <span className="font-mono text-[11.5px] text-ink-3 shrink-0">${t.price.usd.toFixed(2)}</span>
+                    <span className="font-mono text-[11.5px] text-ink-3 shrink-0">{fmtPrice(t.price.usd)}</span>
                     <Plus size={12} className="text-jade-2 shrink-0" />
                   </button>
                 </li>
@@ -3406,7 +3406,7 @@ function EditBookingTestsPanel({ order, onCancel, onSave, inline = false }) {
       {/* Footer */}
       <div className={`${pad} ${sectionPadY} border-t border-line-2 bg-surface-2/40 flex items-center justify-between gap-3`}>
         <div className="text-[11px] text-ink-3">
-          {tests.length} test{tests.length === 1 ? "" : "s"} · <span className="font-mono text-[12px] font-semibold text-ink">${total.toFixed(2)}</span>
+          {tests.length} test{tests.length === 1 ? "" : "s"} · <span className="font-mono text-[12px] font-semibold text-ink">{total > 0 ? fmtPrice(total) : "Pending"}</span>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={onCancel} className="text-[12px] px-3 py-1.5 rounded-md border border-line bg-surface text-ink-2 hover:border-ink font-medium">
@@ -10334,8 +10334,9 @@ function RailSection({ id, icon, title, count, open, onToggle, children }) {
 
 function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) {
   const [cancelledIds, setCancelledIds] = useState(() => new Set());
-  const [editingId, setEditingId]   = useState(null);
-  const [edits, setEdits]           = useState({}); // bookingId → updated tests[] (names)
+  const [editingOrder, setEditingOrder] = useState(null); // booking obj when modal is open
+  const [edits, setEdits]               = useState({}); // bookingId → updated tests[] (names)
+  const [showHistory, setShowHistory]   = useState(false);
 
   // Demo bookings: only Sokha has a history. Every other patient starts at
   // zero bookings so the panel feels honest about brand-new charts.
@@ -10349,10 +10350,21 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
   // pulse animation runs while justPlaced is non-null (parent clears it on a
   // timer) so the row visibly attracts the eye after the toast fires.
   const rawBookings = justPlaced && !baseBookings.some(b => b.id === justPlaced.id)
-    ? [{ ...justPlaced, when: "just now" }, ...baseBookings]
+    ? [{ ...justPlaced, when: "Just now" }, ...baseBookings]
     : baseBookings;
   // Apply in-memory edits so the row reflects the saved test list.
   const bookings = rawBookings.map(b => edits[b.id] ? { ...b, tests: edits[b.id] } : b);
+
+  // Split: active (scheduled / in-progress / just-placed) vs history (results-back / cancelled).
+  // Active stays visible; history hides behind a "Previous orders" disclosure.
+  const active = bookings.filter(b => {
+    if (cancelledIds.has(b.id)) return false;
+    return b.status === "scheduled" || b.status === "in-progress";
+  });
+  const history = bookings.filter(b => {
+    if (cancelledIds.has(b.id)) return true;
+    return b.status === "results-back";
+  });
 
   const statusMeta = {
     "in-progress":  { label: "In progress",  color: "text-amber bg-amber-soft" },
@@ -10360,90 +10372,128 @@ function PatientBookingsCard({ patient, isSokha, justPlaced, glow, onReorder }) 
     "results-back": { label: "Results back", color: "text-jade-2 bg-jade-soft" },
   };
 
+  // Nothing to show — return null so the rail doesn't carry an empty card.
+  if (active.length === 0 && history.length === 0) return null;
+
+  const renderActiveRow = (b) => {
+    const meta = statusMeta[b.status];
+    const code = getBookingMeta(b, false).code;
+    const isJust = justPlaced && b.id === justPlaced.id;
+    const canEdit = b.status === "scheduled";
+    return (
+      <li key={b.id} className={`${isJust ? "booking-pulse-row " : ""}px-3 py-2.5 transition hover:bg-surface-2/40`}>
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="font-mono text-[10px] bg-line-2 px-1.5 py-0.5 rounded shrink-0 tracking-[0.06em] text-ink-2">{code}</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-[12px] text-ink truncate font-medium">{b.tests.join(" · ")}</div>
+            <div className="text-[10px] text-ink-3">{b.when}</div>
+          </div>
+          <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
+        </div>
+        {canEdit && (
+          <div className="flex items-center gap-3 pl-[60px]">
+            <button
+              onClick={() => setEditingOrder(b)}
+              className="text-[11px] font-medium text-jade-2 hover:text-jade hover:underline inline-flex items-center gap-1"
+            >
+              <Pencil size={10} /> Edit order
+            </button>
+            <button
+              onClick={() => setCancelledIds(prev => { const next = new Set(prev); next.add(b.id); return next; })}
+              className="text-[11px] text-ink-3 hover:text-crimson hover:underline"
+            >
+              Cancel order
+            </button>
+          </div>
+        )}
+      </li>
+    );
+  };
+
+  const renderHistoryRow = (b) => {
+    const isCancelled = cancelledIds.has(b.id);
+    const meta = isCancelled
+      ? { label: "Cancelled", color: "text-ink-3 bg-line-2" }
+      : statusMeta[b.status];
+    const code = getBookingMeta(b, isCancelled).code;
+    return (
+      <li key={b.id} className="px-3 py-2 flex items-center gap-2 hover:bg-surface-2/40 transition">
+        <span className={`font-mono text-[10px] bg-line-2 px-1.5 py-0.5 rounded shrink-0 tracking-[0.06em] ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{code}</span>
+        <div className="flex-1 min-w-0">
+          <div className={`text-[11.5px] truncate ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{b.tests.join(" · ")}</div>
+          <div className="text-[10px] text-ink-3">{b.when}</div>
+        </div>
+        <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
+        {!isCancelled && b.status === "results-back" && (
+          <button
+            onClick={() => onReorder && onReorder(b)}
+            title="Reorder same tests"
+            className="text-[10.5px] text-jade-2 font-medium hover:underline shrink-0"
+          >
+            Reorder
+          </button>
+        )}
+      </li>
+    );
+  };
+
   return (
-    <div className={`bg-surface border rounded-xl transition-all duration-700 ${glow ? "border-jade-2 shadow-[0_0_0_4px_var(--color-jade-soft)]" : "border-line"}`}>
-      <div className="flex items-center justify-between px-4 py-3 border-b border-line-2">
-        <div className="flex items-center gap-2">
-          <FlaskConical size={13} className="text-jade-2" />
-          <h3 className="font-display text-[14px] font-medium">Recent orders</h3>
-          <span className="text-[9.5px] uppercase tracking-wider text-ink-3 font-mono bg-line-2 px-1.5 py-0.5 rounded">{bookings.length}</span>
+    <>
+      {/* Active scheduled / in-progress orders — one card surface */}
+      {active.length > 0 && (
+        <div className={`bg-surface border rounded-xl transition-all duration-700 ${glow ? "border-jade-2 shadow-[0_0_0_4px_var(--color-jade-soft)]" : "border-line"}`}>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-line-2">
+            <div className="flex items-center gap-2">
+              <FlaskConical size={13} className="text-jade-2" />
+              <h3 className="font-display text-[14px] font-medium">Active orders</h3>
+              {active.length > 1 && (
+                <span className="text-[9.5px] uppercase tracking-wider text-ink-3 font-mono bg-line-2 px-1.5 py-0.5 rounded">{active.length}</span>
+              )}
+            </div>
+          </div>
+          <ul className="divide-y divide-line-2">
+            {active.map(renderActiveRow)}
+          </ul>
         </div>
-      </div>
-      {bookings.length === 0 ? (
-        <div className="px-4 py-3 text-[11.5px] text-ink-3 leading-snug">
-          No orders yet — use the Quick order panel above.
-        </div>
-      ) : (
-        <ul className="divide-y divide-line-2">
-          {bookings.map(b => {
-            const isCancelled = cancelledIds.has(b.id);
-            const meta = isCancelled
-              ? { label: "Cancelled", color: "text-ink-3 bg-line-2" }
-              : statusMeta[b.status];
-            const code = getBookingMeta(b, isCancelled).code;
-            const isJust = !isCancelled && justPlaced && b.id === justPlaced.id;
-            const isEditing = editingId === b.id;
-            const canEdit   = !isCancelled && b.status === "scheduled";
-            const canCancel = !isCancelled && (b.status === "scheduled" || b.status === "in-progress");
-            return (
-              <li key={b.id} className={isEditing ? "bg-surface-2/40" : ""}>
-                <div
-                  className={`${isJust ? "booking-pulse-row " : ""}flex items-center gap-2 px-3 py-2 transition ${isEditing ? "" : "hover:bg-surface-2/40"} ${isCancelled ? "opacity-60" : ""}`}
-                >
-                  <span className={`font-mono text-[10px] bg-line-2 px-1.5 py-0.5 rounded shrink-0 tracking-[0.06em] ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{code}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-[11.5px] truncate ${isCancelled ? "line-through text-ink-3" : "text-ink-2"}`}>{b.tests.join(" · ")}</div>
-                    <div className="text-[10px] text-ink-3 font-mono">{b.when}</div>
-                  </div>
-                  {isJust && (
-                    <span className="text-[9px] uppercase tracking-wider font-semibold text-jade bg-jade-soft px-1.5 py-0.5 rounded shrink-0 inline-flex items-center gap-1">
-                      <Sparkles size={8} /> New
-                    </span>
-                  )}
-                  <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded shrink-0 ${meta.color}`}>{meta.label}</span>
-                  {canEdit && (
-                    <button
-                      onClick={() => setEditingId(isEditing ? null : b.id)}
-                      title={isEditing ? "Close editor" : "Edit booking · adjust tests"}
-                      className={`w-7 h-7 rounded-md inline-flex items-center justify-center shrink-0 transition ${isEditing ? "bg-jade text-white" : "text-ink-3 hover:text-ink hover:bg-surface-2"}`}
-                    >
-                      <Pencil size={12} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => onReorder && onReorder(b)}
-                    title={`Reorder same tests · ${b.tests.join(" · ")}`}
-                    className="w-7 h-7 rounded-md text-ink-3 hover:text-jade-2 hover:bg-jade-soft inline-flex items-center justify-center shrink-0 transition"
-                  >
-                    <RotateCw size={12} />
-                  </button>
-                  {canCancel && (
-                    <button
-                      onClick={() => setCancelledIds(prev => { const next = new Set(prev); next.add(b.id); return next; })}
-                      title="Cancel booking"
-                      className="w-7 h-7 rounded-md text-ink-3 hover:text-crimson hover:bg-crimson/10 inline-flex items-center justify-center shrink-0 transition"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-                {isEditing && (
-                  <EditBookingTestsPanel
-                    order={b}
-                    inline
-                    onCancel={() => setEditingId(null)}
-                    onSave={(nextTests) => {
-                      setEdits(prev => ({ ...prev, [b.id]: nextTests.map(t => t.name) }));
-                      setEditingId(null);
-                    }}
-                  />
-                )}
-              </li>
-            );
-          })}
-        </ul>
       )}
-    </div>
+
+      {/* Previous orders — collapsed by default. Only one decision surface
+          visible per state. */}
+      {history.length > 0 && (
+        <div className="bg-surface border border-line rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowHistory(v => !v)}
+            aria-expanded={showHistory}
+            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-2/40 transition"
+          >
+            <div className="flex items-center gap-2 text-[12.5px] text-ink-2">
+              <span className="font-medium">Previous orders</span>
+              <span className="text-[10.5px] text-ink-3">
+                {history.length} {history.length === 1 ? "order" : "orders"}
+              </span>
+            </div>
+            <ChevronDown size={13} className={`text-ink-3 transition ${showHistory ? "rotate-180" : ""}`} />
+          </button>
+          {showHistory && (
+            <ul className="divide-y divide-line-2 border-t border-line-2">
+              {history.map(renderHistoryRow)}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {editingOrder && (
+        <EditBookingTestsModal
+          order={editingOrder}
+          onCancel={() => setEditingOrder(null)}
+          onSave={(nextTests) => {
+            setEdits(prev => ({ ...prev, [editingOrder.id]: nextTests.map(t => t.name) }));
+            setEditingOrder(null);
+          }}
+        />
+      )}
+    </>
   );
 }
 
@@ -11107,10 +11157,10 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
   // For Sokha (T2DM, HTN, dyslipidemia) the suggested-for-her group surfaces first.
   const suggested = isSokha
     ? [
-        { id: "hba1c",   name: "HbA1c",            price: 8,  hint: "Glycemic control · due" },
-        { id: "lipid",   name: "Lipid panel",      price: 18, hint: "LDL was 162 mg/dL" },
-        { id: "microalb",name: "Microalbumin",     price: 12, hint: "Early nephropathy follow-up" },
-        { id: "cmp",     name: "Comprehensive metabolic panel", price: 15, hint: "Liver enzymes ↑" },
+        { id: "hba1c",   name: "HbA1c",            price: 8,  hint: "Due for glycemic control" },
+        { id: "lipid",   name: "Lipid panel",      price: 18, hint: "LDL was 162" },
+        { id: "microalb",name: "Microalbumin",     price: 12, hint: "Follow up nephropathy risk" },
+        { id: "cmp",     name: "Metabolic panel",  price: 15, hint: "Check liver and renal function" },
       ]
     : [
         { id: "lipid",   name: "Lipid panel",      price: 18, hint: "Annual screening" },
@@ -11828,7 +11878,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-line-2">
         <div className="flex items-center gap-2">
           <ShoppingCart size={14} className="text-jade-2" />
-          <h3 className="font-display text-[15px] font-medium">Order labs</h3>
+          <h3 className="font-display text-[15px] font-medium">Lab orders</h3>
           {selected.size > 0 && (
             <span className="text-[10.5px] font-mono text-jade-2 bg-jade-soft px-1.5 py-0.5 rounded">{selected.size}</span>
           )}
@@ -11847,18 +11897,38 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
               test" secondary input. Catalog fallback (catalogMatches) kicks
               in when the query doesn't match the suggested list. */}
           <div className="px-4 py-3">
-            {filtered(suggested).length > 0 && (
-              <>
-                <div className="text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold mb-2 inline-flex items-center gap-1.5">
-                  <Sparkles size={10} /> Suggested from results
-                </div>
-                <ul className="space-y-1">
-                  {filtered(suggested).map(t => (
-                    <TestPickerRow key={t.id} test={t} selected={selected.has(t.id)} onToggle={() => toggle(t.id)} />
-                  ))}
-                </ul>
-              </>
-            )}
+            {filtered(suggested).length > 0 && (() => {
+              const visible = filtered(suggested);
+              const allSelected = visible.every(t => selected.has(t.id));
+              return (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[9.5px] uppercase tracking-[0.14em] text-jade-2 font-semibold inline-flex items-center gap-1.5">
+                      <Sparkles size={10} /> Suggested from results
+                    </div>
+                    <button
+                      onClick={() => setSelected(prev => {
+                        const next = new Set(prev);
+                        if (allSelected) {
+                          visible.forEach(t => next.delete(t.id));
+                        } else {
+                          visible.forEach(t => next.add(t.id));
+                        }
+                        return next;
+                      })}
+                      className="text-[10.5px] font-medium text-jade-2 hover:text-jade hover:underline"
+                    >
+                      {allSelected ? "Clear" : "Select suggested"}
+                    </button>
+                  </div>
+                  <ul className="space-y-1">
+                    {visible.map(t => (
+                      <TestPickerRow key={t.id} test={t} selected={selected.has(t.id)} onToggle={() => toggle(t.id)} />
+                    ))}
+                  </ul>
+                </>
+              );
+            })()}
 
             {query.trim() && catalogMatches.length > 0 && (
               <div className={filtered(suggested).length > 0 ? "mt-3" : ""}>
@@ -11879,13 +11949,13 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
           </div>
 
           <div className="px-4 pb-3 border-t border-line-2 pt-3 bg-surface-2/30">
-            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1.5">Or search the catalog</div>
+            <div className="text-[9.5px] uppercase tracking-[0.14em] text-ink-3 font-semibold mb-1.5">Add another test</div>
             <div className="relative">
               <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-3 pointer-events-none" />
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Test name or code…"
+                placeholder="Search tests"
                 className="w-full pl-7 pr-2 py-1.5 rounded-md border border-line bg-surface text-[11.5px] placeholder:text-ink-3 focus:border-ink focus:outline-none"
               />
             </div>
@@ -11898,7 +11968,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
           {items.map(t => (
             <div key={t.id} className="flex items-center justify-between text-[12px]">
               <span className="text-ink-2 truncate">{t.name}</span>
-              <span className="font-mono text-ink-3 shrink-0 ml-2">${t.price.toFixed(2)}</span>
+              <span className="font-mono text-ink-3 shrink-0 ml-2">{fmtPrice(t.price)}</span>
             </div>
           ))}
         </div>
@@ -11909,7 +11979,7 @@ function QuickOrderPanel({ patient, onClose, onOrderPlaced, onViewOrder }) {
           <>
             <div className="flex items-baseline justify-between mb-2">
               <span className="text-[11px] text-ink-3">{items.length} test{items.length === 1 ? "" : "s"} selected</span>
-              <span className="font-mono text-[14px] font-semibold text-ink">${total.toFixed(2)}</span>
+              <span className="font-mono text-[14px] font-semibold text-ink">{fmtPrice(total)}</span>
             </div>
             <button
               disabled={items.length === 0}
@@ -12074,6 +12144,13 @@ function CashConfirmModal({ amount, patientName, onCancel, onConfirm }) {
   );
 }
 
+function fmtPrice(n) {
+  // Clinical price chrome — drop trailing .00 so $8 reads cleaner than $8.00
+  // in a tight rail. Keep cents when the price isn't a whole dollar (e.g. $8.50).
+  if (typeof n !== "number" || Number.isNaN(n)) return "—";
+  return n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
+}
+
 function TestPickerRow({ test, selected, onToggle }) {
   return (
     <li>
@@ -12088,7 +12165,7 @@ function TestPickerRow({ test, selected, onToggle }) {
         <span className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="text-[12px] font-medium text-ink truncate">{test.name}</div>
-            <span className="font-mono text-[11px] text-ink-3 shrink-0">${test.price.toFixed(2)}</span>
+            <span className="font-mono text-[11px] text-ink-3 shrink-0">{fmtPrice(test.price)}</span>
           </div>
           {test.hint && (
             <div className="text-[10px] text-ink-3 leading-tight mt-0.5 truncate">{test.hint}</div>
