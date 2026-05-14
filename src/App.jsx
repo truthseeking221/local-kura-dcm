@@ -1814,14 +1814,28 @@ function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth, onStartVerif
   const isPierre = isPierreAccount(auth);
   const [tier] = useDoctorTier();
   const isExplorer = tier === "explorer";
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  // Single flat list of primary destinations only. Coming-soon items hidden
-  // until shipped — no lock icons on individual rows. Account-level surfaces
-  // (Refer, Billing, Directory, e-Signature) moved to UserMenuWidget.
-  const items = [
+  // Primary nav: daily destinations only
+  const primary = [
     { id: "patients", label: "Patients",  icon: Users,      badge: isPierre ? "1.2k" : null },
     { id: "orders",   label: "Bookings",  icon: Calendar,   badge: isPierre ? "12"   : null },
     { id: "catalog",  label: "Lab tests", icon: TestTubes,  badge: null },
+  ];
+
+  // Secondary: kept discoverable but quieter. No per-row locks.
+  // Auto-promote a tool to primary by moving it into `primary` above.
+  const more = [
+    { id: "inbox",       label: "Inbox",       icon: Inbox },
+    { id: "calendar",    label: "Calendar",    icon: Calendar },
+    { id: "tasks",       label: "Tasks",       icon: ListChecks },
+    { id: "telehealth",  label: "Telehealth",  icon: Video },
+    { id: "careplans",   label: "Care plans",  icon: ClipboardList },
+    { id: "dispensary",  label: "Dispensary",  icon: Pill },
+    { id: "supplies",    label: "Supplies",    icon: Package },
+    { id: "pharma",      label: "Pharma calls",icon: Building2 },
+    { id: "performance", label: "Dashboard",   icon: LayoutDashboard },
+    { id: "billing",     label: "Billing",     icon: Banknote },
   ];
 
   return (
@@ -1832,7 +1846,7 @@ function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth, onStartVerif
       footer={<UserMenuWidget auth={auth} onNavigate={setNav} collapsed={collapsed} />}
     >
       <ul className="space-y-0.5">
-        {items.map(it => (
+        {primary.map(it => (
           <li key={it.id} data-tour={`nav-${it.id}`}>
             <SidebarNavItem
               icon={<it.icon size={15} />}
@@ -1845,22 +1859,55 @@ function SideNav({ nav, setNav, collapsed, onToggleCollapsed, auth, onStartVerif
         ))}
       </ul>
 
-      {/* Single verification card replaces per-row lock icons for explorer tier */}
-      {isExplorer && !collapsed && (
-        <button
-          type="button"
-          onClick={() => onStartVerification?.()}
-          data-tour="nav-verify"
-          className="mt-4 w-full rounded-[var(--radius)] border border-[var(--brand-200)] bg-[var(--brand-50)] px-3 py-2.5 text-left transition hover:bg-[var(--brand-100)]"
-        >
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={14} className="text-[var(--brand-700)] shrink-0" />
-            <span className="text-k-sm font-medium text-[var(--brand-800)]">Verify license</span>
-          </div>
-          <p className="mt-1 text-k-xs leading-snug text-[var(--ink-600)]">
-            Unlock patient charts, lab orders, and signed documents.
-          </p>
-        </button>
+      {/* More tools — expandable secondary group. Quieter chrome than primary. */}
+      {!collapsed && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setMoreOpen(o => !o)}
+            aria-expanded={moreOpen}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left text-k-sm text-[var(--ink-600)] hover:text-[var(--ink-900)] hover:bg-[var(--surface-2)] transition"
+          >
+            <ChevronRight
+              size={13}
+              className={`transition-transform shrink-0 ${moreOpen ? "rotate-90" : ""}`}
+            />
+            <span className="flex-1">More tools</span>
+            <span className="text-k-xs text-[var(--ink-500)] font-mono">{more.length}</span>
+          </button>
+
+          {moreOpen && (
+            <div className="mt-1 pl-3">
+              {isExplorer && (
+                <button
+                  type="button"
+                  onClick={() => onStartVerification?.()}
+                  className="mb-2 w-full text-left rounded-[var(--radius-sm)] bg-[var(--brand-50)] px-2.5 py-1.5 text-k-xs leading-snug text-[var(--brand-800)] hover:bg-[var(--brand-100)] transition"
+                >
+                  Verify your license to use all tools.
+                </button>
+              )}
+              <ul className="space-y-0">
+                {more.map(it => (
+                  <li key={it.id} data-tour={`nav-${it.id}`}>
+                    <button
+                      type="button"
+                      onClick={() => setNav(it.id)}
+                      className={`group flex w-full items-center gap-2 px-2 py-1.5 rounded-md text-left text-k-sm transition ${
+                        nav === it.id
+                          ? "bg-[var(--brand-50)] text-[var(--brand-800)]"
+                          : "text-[var(--ink-600)] hover:text-[var(--ink-900)] hover:bg-[var(--surface-2)]"
+                      }`}
+                    >
+                      <it.icon size={13} className="shrink-0 opacity-80" />
+                      <span className="flex-1 truncate">{it.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </AppSidebar>
   );
@@ -1963,6 +2010,13 @@ function UserMenuWidget({ auth, collapsed, onNavigate }) {
           <div className="h-px bg-line" />
           <div className="py-1">
             <UserMenuRow icon={<Users size={13} />}              label="Members" onClick={() => go("members")} />
+            <UserMenuRow icon={<Globe size={13} />}              label="Public profile" onClick={() => go("directory")} />
+            <UserMenuRow icon={<ShieldCheck size={13} />}        label="Signature" onClick={() => go("signing")} />
+            <UserMenuRow icon={<Banknote size={13} />}           label="Billing" onClick={() => go("billing")} />
+            <UserMenuRow icon={<Send size={13} />}               label="Refer Kura" onClick={() => go("referrals")} />
+          </div>
+          <div className="h-px bg-line" />
+          <div className="py-1">
             <UserMenuRow icon={<SlidersHorizontal size={13} />}  label="Preferences" onClick={openPrefs} />
             <UserMenuRow icon={<Settings size={13} />}           label="Account settings" />
             <UserMenuRow icon={<Building2 size={13} />}          label="Organization settings" />
